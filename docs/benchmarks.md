@@ -5,7 +5,7 @@ in-process against the real memory, PostgreSQL and Redis backends and records
 both throughput and **correctness invariants**.
 
 Raw artifact for the published run:
-[`benchmarks/results/run-20261107T050148Z.json`](https://github.com/mithun-27/StatePact/blob/main/benchmarks/results/run-20261107T050148Z.json).
+[`benchmarks/results/run-20261107T051143Z.json`](https://github.com/mithun-27/StatePact/blob/main/benchmarks/results/run-20261107T051143Z.json).
 `latest.json` is identical.
 
 ## Methodology
@@ -14,7 +14,7 @@ Raw artifact for the published run:
 * **Environment:** Windows 11 `10.0.26300`, Python 3.12.13, AMD64 12-logical-CPU
   VM. PostgreSQL 16 and Redis 7 in Docker Desktop on the same host. Services
   reached over Docker port forwarding.
-* **Workload:** 40 agents × 10 operations = 400 transactions per scenario. Each
+* **Workload:** 40 agents Ã— 10 operations = 400 transactions per scenario. Each
   operation reads a value, yields with `asyncio.sleep(0)` so concurrent agents
   interleave, then writes the new value.
 * **Scenarios:** independent keys, one hot key, one hot key with jittered
@@ -25,12 +25,12 @@ Raw artifact for the published run:
   retry immediately.
 * **Retry policy (backoff):** `max_attempts=2000`, `base_delay=1 ms`,
   `max_delay=50 ms`, `jitter=0.5`.
-* **Leases:** 10 agents × 10 operations, concurrency 1, to measure the
+* **Leases:** 10 agents Ã— 10 operations, concurrency 1, to measure the
   lease+commit+fence path without a queueing overlay.
 * **Namespacing:** every resource gets a per-run suffix, so a durable backend
   never reads a previous run's state.
 * **No warm-up phase and no result filtering.** Wall time for the complete run:
-  **168.3 s**.
+  **173.4 s**.
 
 Reproduce:
 
@@ -61,11 +61,11 @@ Committed operations per second. The number in parentheses is
 
 | Scenario | memory | PostgreSQL | Redis |
 |---|---:|---:|---:|
-| Independent keys | 1,763 (1.00) | 59.0 (1.00) | 230.4 (1.00) |
-| Hot key, zero backoff | 347 (10.75) | 7.9 (13.38) | 19.7 (20.61) |
-| Hot key, jittered backoff | 244 (3.27) | 7.9 (12.79) | 26.7 (14.28) |
-| Read-only commits | 6,939 | 139.3 | 479.7 |
-| Lease + commit (sequential) | 3,184 | 21.4 | 92.5 |
+| Independent keys | 1,534 (1.00) | 53.7 (1.00) | 229.4 (1.00) |
+| Hot key, zero backoff | 344 (10.75) | 7.7 (13.56) | 18.8 (20.59) |
+| Hot key, jittered backoff | 241 (3.17) | 7.8 (12.90) | 26.8 (14.15) |
+| Read-only commits | 6,619 | 133.4 | 427.4 |
+| Lease + commit (sequential) | 3,013 | 18.3 | 88.9 |
 
 Throughput is `400 / wall_seconds` for each scenario. A retry is a full commit
 attempt, so hot-key rows pay for every conflict.
@@ -78,11 +78,11 @@ operations are fast; operations that lose many races pay the tail.
 
 | Scenario | memory p50 / p95 | PostgreSQL p50 / p95 | Redis p50 / p95 |
 |---|---:|---:|---:|
-| Independent keys | 22.3 / 23.2 | 622.5 / 855.6 | 129.7 / 520.2 |
-| Hot key, zero backoff | 2.5 / 842.3 | 2,791.3 / 14,620.3 | 53.0 / 14,679.3 |
-| Hot key, jittered backoff | 0.3 / 762.6 | 2,823.9 / 14,603.4 | 432.9 / 5,036.3 |
-| Read-only commits | 0.13 / 0.16 | 270.7 / 380.9 | 80.4 / 92.0 |
-| Lease + commit | 0.29 / 0.36 | 46.4 / 50.6 | 10.8 / 12.0 |
+| Independent keys | 24.7 / 33.9 | 694.2 / 976.8 | 129.4 / 554.8 |
+| Hot key, zero backoff | 2.6 / 840.5 | 3,163.5 / 13,279.9 | 59.8 / 15,264.6 |
+| Hot key, jittered backoff | 0.3 / 753.6 | 2,759.7 / 14,467.6 | 486.0 / 5,059.3 |
+| Read-only commits | 0.14 / 0.19 | 280.0 / 420.5 | 89.4 / 127.2 |
+| Lease + commit | 0.30 / 0.43 | 50.4 / 82.0 | 10.9 / 14.0 |
 
 The p50 for memory is low because a successful transaction does very little. The
 tail is the cost of losing races. PostgreSQL's p50 includes several round trips
@@ -95,14 +95,14 @@ performance claims.
 
 | Check | memory | PostgreSQL | Redis |
 |---|---:|---:|---:|
-| `none`: counter after 400 increments | 10 / 400 ❌ | 24 / 400 ❌ | 10 / 400 ❌ |
-| `optimistic`: counter after 400 increments | 400 / 400 ✅ | 400 / 400 ✅ | 400 / 400 ✅ |
-| `snapshot`: write-skew violations | 20 / 20 ❌ | 20 / 20 ❌ | 20 / 20 ❌ |
-| `serializable`: write-skew violations | 0 / 20 ✅ | 0 / 20 ✅ | 0 / 20 ✅ |
+| `none`: counter after 400 increments | 10 / 400 âŒ | 24 / 400 âŒ | 10 / 400 âŒ |
+| `optimistic`: counter after 400 increments | 400 / 400 âœ… | 400 / 400 âœ… | 400 / 400 âœ… |
+| `snapshot`: write-skew violations | 20 / 20 âŒ | 20 / 20 âŒ | 20 / 20 âŒ |
+| `serializable`: write-skew violations | 0 / 20 âœ… | 0 / 20 âœ… | 0 / 20 âœ… |
 | `serializable`: conflicts rejected | 20 / 20 | 20 / 20 | 20 / 20 |
 | Lease final fence | 100 | 100 | 100 |
 
-`none` loses 376–390 of 400 updates on every backend. That is the failure mode
+`none` loses 376â€“390 of 400 updates on every backend. That is the failure mode
 transactions prevent. `snapshot` commits both doctors going off call in every
 trial; `optimistic` and `serializable` reject one side.
 

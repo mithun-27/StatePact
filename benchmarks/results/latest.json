@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "started_at": "2026-11-07T05:01:48.341540+00:00",
+  "started_at": "2026-11-07T05:11:43.313985+00:00",
   "environment": {
     "statepact": "0.1.0",
     "python": "3.12.13",
@@ -8,7 +8,7 @@
     "machine": "AMD64",
     "processor": "AMD64 Family 25 Model 80 Stepping 0, AuthenticAMD",
     "cpu_count": 12,
-    "commit": "b49e23678fe3b0f611f12e6a18fd3c6575fd18ff"
+    "commit": "d2f089f4ec35a2d21ec526fb08e124895f312150"
   },
   "configuration": {
     "agents": 40,
@@ -43,20 +43,20 @@
         "no_contention": {
           "agents": 40,
           "operations": 400,
-          "duration_seconds": 0.22690540000030524,
-          "throughput_ops_per_second": 1762.8491873682244,
+          "duration_seconds": 0.2607746000003317,
+          "throughput_ops_per_second": 1533.8917210475684,
           "attempts": 400,
           "attempts_per_operation": 1.0,
           "retries": 0,
           "failures": 0,
           "latency_ms": {
             "count": 400.0,
-            "min": 6.944400000065798,
-            "p50": 22.248550000085743,
-            "p95": 23.15688500002579,
-            "p99": 23.47556999981407,
-            "max": 23.555799999940064,
-            "mean": 21.328440499997896
+            "min": 7.832999999664025,
+            "p50": 24.687749999884545,
+            "p95": 33.92941999991307,
+            "p99": 35.88994699994146,
+            "max": 36.047700000381155,
+            "mean": 24.633973750003406
           },
           "invariants": {
             "expected_total": 400,
@@ -67,8 +67,8 @@
         "hot_key": {
           "agents": 40,
           "operations": 400,
-          "duration_seconds": 1.1542445000000043,
-          "throughput_ops_per_second": 346.5470270813493,
+          "duration_seconds": 1.1632993999992323,
+          "throughput_ops_per_second": 343.8495713143701,
           "attempts": 4300,
           "attempts_per_operation": 10.75,
           "retries": 3900,
@@ -79,12 +79,12 @@
           },
           "latency_ms": {
             "count": 400.0,
-            "min": 0.22530000023834873,
-            "p50": 2.5064000001293607,
-            "p95": 842.264694999993,
-            "p99": 1126.8682779997516,
-            "max": 1148.5163000002103,
-            "mean": 77.33165724998344
+            "min": 0.23220000002766028,
+            "p50": 2.5457000001551933,
+            "p95": 840.462350000506,
+            "p99": 1134.4009230002027,
+            "max": 1157.0490000003701,
+            "mean": 78.22949700001345
           },
           "invariants": {
             "expected_counter": 400,
@@ -95,19 +95,19 @@
         "baseline_none": {
           "agents": 40,
           "operations": 400,
-          "duration_seconds": 0.07184649999999237,
-          "throughput_ops_per_second": 5567.424996346968,
+          "duration_seconds": 0.0694208000004437,
+          "throughput_ops_per_second": 5761.961832727992,
           "failures": 0,
           "conflicts": 0,
           "error_classes": {},
           "latency_ms": {
             "count": 400.0,
-            "min": 2.4469999998473213,
-            "p50": 6.727550000050542,
-            "p95": 8.617790000243986,
-            "p99": 8.965717000010045,
-            "max": 9.035000000039872,
-            "mean": 6.7562212500013175
+            "min": 2.6363000006313086,
+            "p50": 6.7154500006836315,
+            "p95": 7.815864999884065,
+            "p99": 8.106219000073906,
+            "max": 8.132799999657436,
+            "mean": 6.5234985000120105
           },
           "invariants": {
             "expected_counter": 400,
@@ -118,24 +118,24 @@
         "hot_key_backoff": {
           "agents": 40,
           "operations": 400,
-          "duration_seconds": 1.6378495000003568,
-          "throughput_ops_per_second": 244.2226834638426,
-          "attempts": 1307,
-          "attempts_per_operation": 3.2675,
-          "retries": 907,
+          "duration_seconds": 1.6619388999997682,
+          "throughput_ops_per_second": 240.68273508734634,
+          "attempts": 1269,
+          "attempts_per_operation": 3.1725,
+          "retries": 869,
           "failures": 0,
-          "conflicts": 907,
+          "conflicts": 869,
           "error_classes": {
-            "ReadWriteConflict": 907
+            "ReadWriteConflict": 869
           },
           "latency_ms": {
             "count": 400.0,
-            "min": 0.22340000032272656,
-            "p50": 0.2768499998637708,
-            "p95": 762.5512299997339,
-            "p99": 1461.057601999782,
-            "max": 1634.1150000002926,
-            "mean": 84.8828347499955
+            "min": 0.22569999964616727,
+            "p50": 0.2781000002869405,
+            "p95": 753.5749200000267,
+            "p99": 1455.2166370002938,
+            "max": 1655.7748999994146,
+            "mean": 84.7399367500384
           },
           "invariants": {
             "expected_counter": 400,
@@ -146,17 +146,17 @@
         "read_only": {
           "agents": 40,
           "operations": 400,
-          "duration_seconds": 0.05764529999987644,
-          "throughput_ops_per_second": 6938.98722013516,
+          "duration_seconds": 0.060432300000684336,
+          "throughput_ops_per_second": 6618.976937754651,
           "failures": 0,
           "latency_ms": {
             "count": 400.0,
-            "min": 0.1291999997192761,
-            "p50": 0.1338999998097279,
-            "p95": 0.16402000003381514,
-            "p99": 0.21299699995324764,
-            "max": 0.34219999997731065,
-            "mean": 0.13996949999182107
+            "min": 0.13029999990976648,
+            "p50": 0.13639999997394625,
+            "p95": 0.18679999993764795,
+            "p99": 0.26513800056818565,
+            "max": 0.36530000033963006,
+            "mean": 0.14678525001272646
           }
         },
         "write_skew_serializable": {
@@ -182,19 +182,19 @@
         "leases": {
           "agents": 10,
           "operations": 100,
-          "duration_seconds": 0.031403599999975995,
-          "throughput_ops_per_second": 3184.348291281141,
+          "duration_seconds": 0.03319259999989299,
+          "throughput_ops_per_second": 3012.7197025940236,
           "failures": 0,
           "error_classes": {},
           "final_fence": 100,
           "latency_ms": {
             "count": 100.0,
-            "min": 0.282599999991362,
-            "p50": 0.293000000056054,
-            "p95": 0.3589599999486381,
-            "p99": 0.4745699999421052,
-            "max": 0.5310000001372828,
-            "mean": 0.3077940000093804
+            "min": 0.28500000007625204,
+            "p50": 0.29764999953840743,
+            "p95": 0.4334200003995647,
+            "p99": 0.5338080004185048,
+            "max": 0.8612999999968451,
+            "mean": 0.3251499999896623
           }
         }
       }
@@ -212,20 +212,20 @@
         "no_contention": {
           "agents": 40,
           "operations": 400,
-          "duration_seconds": 6.774883300000056,
-          "throughput_ops_per_second": 59.04160740303773,
+          "duration_seconds": 7.448515699999916,
+          "throughput_ops_per_second": 53.70197447526418,
           "attempts": 400,
           "attempts_per_operation": 1.0,
           "retries": 0,
           "failures": 0,
           "latency_ms": {
             "count": 400.0,
-            "min": 404.7568000000865,
-            "p50": 622.4551000002521,
-            "p95": 855.5994600000075,
-            "p99": 1034.689706000249,
-            "max": 1114.3612999999277,
-            "mean": 643.3468822499947
+            "min": 229.78299999977025,
+            "p50": 694.2025499997726,
+            "p95": 976.7499850000148,
+            "p99": 1144.1014559995435,
+            "max": 1254.6001999999135,
+            "mean": 710.1941834999911
           },
           "invariants": {
             "expected_total": 400,
@@ -236,24 +236,24 @@
         "hot_key": {
           "agents": 40,
           "operations": 400,
-          "duration_seconds": 50.5369811999999,
-          "throughput_ops_per_second": 7.914995919859194,
-          "attempts": 5352,
-          "attempts_per_operation": 13.38,
-          "retries": 4952,
+          "duration_seconds": 52.10076190000018,
+          "throughput_ops_per_second": 7.677430912963263,
+          "attempts": 5424,
+          "attempts_per_operation": 13.56,
+          "retries": 5024,
           "failures": 0,
-          "conflicts": 4952,
+          "conflicts": 5024,
           "error_classes": {
-            "ReadWriteConflict": 4952
+            "ReadWriteConflict": 5024
           },
           "latency_ms": {
             "count": 400.0,
-            "min": 87.89060000026439,
-            "p50": 2791.2725999999566,
-            "p95": 14620.341834999883,
-            "p99": 20141.35132800017,
-            "max": 34061.942599999835,
-            "mean": 4523.805221999987
+            "min": 51.85249999976804,
+            "p50": 3163.5228000000097,
+            "p95": 13279.924709999745,
+            "p99": 18297.74741000069,
+            "max": 26389.07680000011,
+            "mean": 4555.766851499954
           },
           "invariants": {
             "expected_counter": 400,
@@ -264,19 +264,19 @@
         "baseline_none": {
           "agents": 40,
           "operations": 400,
-          "duration_seconds": 6.084012899999834,
-          "throughput_ops_per_second": 65.74608018993696,
+          "duration_seconds": 6.431387499999801,
+          "throughput_ops_per_second": 62.19497736686095,
           "failures": 0,
           "conflicts": 0,
           "error_classes": {},
           "latency_ms": {
             "count": 400.0,
-            "min": 123.99460000006002,
-            "p50": 606.1817999998311,
-            "p95": 676.3270500001224,
-            "p99": 800.3027130000236,
-            "max": 827.3825999999644,
-            "mean": 583.3370842500142
+            "min": 147.20450000004348,
+            "p50": 621.1589499998809,
+            "p95": 732.9951849995267,
+            "p99": 872.2093949996815,
+            "max": 909.8217999999179,
+            "mean": 613.821639750015
           },
           "invariants": {
             "expected_counter": 400,
@@ -287,24 +287,24 @@
         "hot_key_backoff": {
           "agents": 40,
           "operations": 400,
-          "duration_seconds": 50.63638910000009,
-          "throughput_ops_per_second": 7.899457427938899,
-          "attempts": 5116,
-          "attempts_per_operation": 12.79,
-          "retries": 4716,
+          "duration_seconds": 51.04134299999987,
+          "throughput_ops_per_second": 7.836784388686658,
+          "attempts": 5161,
+          "attempts_per_operation": 12.9025,
+          "retries": 4761,
           "failures": 0,
-          "conflicts": 4716,
+          "conflicts": 4761,
           "error_classes": {
-            "ReadWriteConflict": 4716
+            "ReadWriteConflict": 4761
           },
           "latency_ms": {
             "count": 400.0,
-            "min": 24.94769999975688,
-            "p50": 2823.893399999861,
-            "p95": 14603.378349999817,
-            "p99": 22418.76588400005,
-            "max": 27757.467299999917,
-            "mean": 4493.836573500012
+            "min": 29.44299999944633,
+            "p50": 2759.6895500005303,
+            "p95": 14467.564035000078,
+            "p99": 21698.31678700018,
+            "max": 37751.79119999939,
+            "mean": 4459.454387750014
           },
           "invariants": {
             "expected_counter": 400,
@@ -315,17 +315,17 @@
         "read_only": {
           "agents": 40,
           "operations": 400,
-          "duration_seconds": 2.8724505000000136,
-          "throughput_ops_per_second": 139.25392273948606,
+          "duration_seconds": 2.999418900000819,
+          "throughput_ops_per_second": 133.3591650035581,
           "failures": 0,
           "latency_ms": {
             "count": 400.0,
-            "min": 51.27309999988938,
-            "p50": 270.71829999999864,
-            "p95": 380.94361500027384,
-            "p99": 427.95835300036737,
-            "max": 460.90529999992214,
-            "mean": 272.9741242499881
+            "min": 89.34020000015153,
+            "p50": 279.9490499996864,
+            "p95": 420.52241500041407,
+            "p99": 459.66542800025303,
+            "max": 582.9530000000887,
+            "mean": 290.7378437500097
           }
         },
         "write_skew_serializable": {
@@ -351,19 +351,19 @@
         "leases": {
           "agents": 10,
           "operations": 100,
-          "duration_seconds": 4.678710000000137,
-          "throughput_ops_per_second": 21.37341275693451,
+          "duration_seconds": 5.473769299999731,
+          "throughput_ops_per_second": 18.268946774940794,
           "failures": 0,
           "error_classes": {},
           "final_fence": 100,
           "latency_ms": {
             "count": 100.0,
-            "min": 43.37649999979476,
-            "p50": 46.37914999989334,
-            "p95": 50.61643999983971,
-            "p99": 51.766256000109955,
-            "max": 54.98929999976099,
-            "mean": 46.780159000013555
+            "min": 46.03839999981574,
+            "p50": 50.38525000009031,
+            "p95": 81.97366000003966,
+            "p99": 87.23618400010314,
+            "max": 94.17450000000827,
+            "mean": 54.72788199997012
           }
         }
       }
@@ -381,20 +381,20 @@
         "no_contention": {
           "agents": 40,
           "operations": 400,
-          "duration_seconds": 1.7361556999999266,
-          "throughput_ops_per_second": 230.39408274270386,
+          "duration_seconds": 1.7437131999995472,
+          "throughput_ops_per_second": 229.39552215358802,
           "attempts": 400,
           "attempts_per_operation": 1.0,
           "retries": 0,
           "failures": 0,
           "latency_ms": {
             "count": 400.0,
-            "min": 121.34379999997691,
-            "p50": 129.68240000009246,
-            "p95": 520.1899599997887,
-            "p99": 522.9390739999417,
-            "max": 523.4783999999308,
-            "mean": 171.9784845000106
+            "min": 107.75009999997565,
+            "p50": 129.43319999976666,
+            "p95": 554.7664949999216,
+            "p99": 560.0193860001673,
+            "max": 561.7768000001888,
+            "mean": 169.74058775001825
           },
           "invariants": {
             "expected_total": 400,
@@ -405,24 +405,24 @@
         "hot_key": {
           "agents": 40,
           "operations": 400,
-          "duration_seconds": 20.31262629999992,
-          "throughput_ops_per_second": 19.692185249329455,
-          "attempts": 8245,
-          "attempts_per_operation": 20.6125,
-          "retries": 7845,
+          "duration_seconds": 21.28157740000006,
+          "throughput_ops_per_second": 18.79559923974427,
+          "attempts": 8235,
+          "attempts_per_operation": 20.5875,
+          "retries": 7835,
           "failures": 0,
-          "conflicts": 7845,
+          "conflicts": 7835,
           "error_classes": {
-            "ReadWriteConflict": 7845
+            "ReadWriteConflict": 7835
           },
           "latency_ms": {
             "count": 400.0,
-            "min": 6.114300000263029,
-            "p50": 53.014449999864155,
-            "p95": 14679.334919999654,
-            "p99": 19731.963468999893,
-            "max": 20020.379800000228,
-            "mean": 1373.0842247500095
+            "min": 5.981899999824236,
+            "p50": 59.751650000180234,
+            "p95": 15264.584284999979,
+            "p99": 20885.69334100026,
+            "max": 21219.545400000243,
+            "mean": 1434.1193734999933
           },
           "invariants": {
             "expected_counter": 400,
@@ -433,19 +433,19 @@
         "baseline_none": {
           "agents": 40,
           "operations": 400,
-          "duration_seconds": 0.832329800000025,
-          "throughput_ops_per_second": 480.57873213236866,
+          "duration_seconds": 0.6777732999998989,
+          "throughput_ops_per_second": 590.167833403971,
           "failures": 0,
           "conflicts": 0,
           "error_classes": {},
           "latency_ms": {
             "count": 400.0,
-            "min": 55.21520000002056,
-            "p50": 79.54989999984718,
-            "p95": 114.6563599998899,
-            "p99": 116.78485200011892,
-            "max": 120.2078999999685,
-            "mean": 81.82084100001589
+            "min": 52.60649999945599,
+            "p50": 60.816150000391644,
+            "p95": 93.13120000010709,
+            "p99": 96.82402799985539,
+            "max": 97.3600000006627,
+            "mean": 65.66016550000995
           },
           "invariants": {
             "expected_counter": 400,
@@ -456,24 +456,24 @@
         "hot_key_backoff": {
           "agents": 40,
           "operations": 400,
-          "duration_seconds": 14.958594599999742,
-          "throughput_ops_per_second": 26.740480018089862,
-          "attempts": 5711,
-          "attempts_per_operation": 14.2775,
-          "retries": 5311,
+          "duration_seconds": 14.924612900000284,
+          "throughput_ops_per_second": 26.801365146294174,
+          "attempts": 5662,
+          "attempts_per_operation": 14.155,
+          "retries": 5262,
           "failures": 0,
-          "conflicts": 5311,
+          "conflicts": 5262,
           "error_classes": {
-            "ReadWriteConflict": 5311
+            "ReadWriteConflict": 5262
           },
           "latency_ms": {
             "count": 400.0,
-            "min": 5.967999999938911,
-            "p50": 432.8861500000585,
-            "p95": 5036.277999999939,
-            "p99": 8631.457235999695,
-            "max": 10717.690599999969,
-            "mean": 1276.3418175000118
+            "min": 6.247199999961595,
+            "p50": 486.015800000132,
+            "p95": 5059.309764999475,
+            "p99": 8167.475515999676,
+            "max": 10425.710399999844,
+            "mean": 1294.6465580000017
           },
           "invariants": {
             "expected_counter": 400,
@@ -484,17 +484,17 @@
         "read_only": {
           "agents": 40,
           "operations": 400,
-          "duration_seconds": 0.8338733000000502,
-          "throughput_ops_per_second": 479.68918059851046,
+          "duration_seconds": 0.9359675000005154,
+          "throughput_ops_per_second": 427.36526642194275,
           "failures": 0,
           "latency_ms": {
             "count": 400.0,
-            "min": 77.87280000002283,
-            "p50": 80.40795000010803,
-            "p95": 92.02162999979463,
-            "p99": 93.05250499995054,
-            "max": 93.5418000003665,
-            "mean": 82.14649725000982
+            "min": 76.38700000006793,
+            "p50": 89.38995000016803,
+            "p95": 127.18062999965692,
+            "p99": 130.26623700062373,
+            "max": 130.90069999998377,
+            "mean": 92.28221349997739
           }
         },
         "write_skew_serializable": {
@@ -520,24 +520,24 @@
         "leases": {
           "agents": 10,
           "operations": 100,
-          "duration_seconds": 1.0808802999999898,
-          "throughput_ops_per_second": 92.5171825224319,
+          "duration_seconds": 1.1248758000001544,
+          "throughput_ops_per_second": 88.89870330572164,
           "failures": 0,
           "error_classes": {},
           "final_fence": 100,
           "latency_ms": {
             "count": 100.0,
-            "min": 8.983199999875069,
-            "p50": 10.826150000184498,
-            "p95": 11.974469999699977,
-            "p99": 12.776270000163105,
-            "max": 14.97109999991153,
-            "mean": 10.800310999998146
+            "min": 9.813999999096268,
+            "p50": 10.878800000227784,
+            "p95": 13.957034999702955,
+            "p99": 15.788274000415191,
+            "max": 16.775699999925564,
+            "mean": 11.239806999974462
           }
         }
       }
     }
   },
-  "finished_at": "2026-11-07T05:04:36.652342+00:00",
-  "wall_seconds": 168.310802
+  "finished_at": "2026-11-07T05:14:36.705835+00:00",
+  "wall_seconds": 173.39185
 }

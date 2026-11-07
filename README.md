@@ -31,15 +31,15 @@ twice, or a counter loses updates, or two agents both decide they are the one on
 call. Framework checkpointers persist *messages*, not **conflict detection across
 concurrent tool calls**. StatePact adds the missing concurrency layer:
 
-* **Isolation you choose** — `optimistic`, `snapshot`, `serializable`,
+* **Isolation you choose** â€” `optimistic`, `snapshot`, `serializable`,
   `pessimistic`, or `none` as an explicitly unsafe baseline.
-* **Correct retries** — a conflict re-runs the whole transaction on a fresh
+* **Correct retries** â€” a conflict re-runs the whole transaction on a fresh
   snapshot; an unknown failure is never silently retried.
-* **Idempotent commits** — the same operation replayed returns the original
+* **Idempotent commits** â€” the same operation replayed returns the original
   result instead of applying twice.
-* **Leases with fencing tokens** — a paused worker that wakes up after its lease
+* **Leases with fencing tokens** â€” a paused worker that wakes up after its lease
   expired cannot overwrite the new owner.
-* **Backends you can deploy** — process-local memory, PostgreSQL, or Redis.
+* **Backends you can deploy** â€” process-local memory, PostgreSQL, or Redis.
 
 StatePact is framework-independent. LangGraph, CrewAI and AutoGen adapters are
 thin optional wrappers; the same engine works with a custom agent loop.
@@ -50,7 +50,7 @@ not the Python engine; the runnable Python demo is in [`demo/`](demo/).
 
 ## What it is not
 
-* Not a workflow/checkpoint engine (use LangGraph, Temporal, …). It coordinates
+* Not a workflow/checkpoint engine (use LangGraph, Temporal, â€¦). It coordinates
   **shared mutable state**, not message history.
 * Not a vector store or a database. PostgreSQL/Redis store the *coordination*
   state; your domain data can live anywhere.
@@ -119,20 +119,20 @@ async with manager.session(agent_id="planner", resources=[inventory]) as session
     result = await session.commit()     # explicit: exiting without commit aborts
 ```
 
-Runnable examples: [`examples/`](examples/) — inventory, idempotency, leases,
+Runnable examples: [`examples/`](examples/) â€” inventory, idempotency, leases,
 PostgreSQL counter.
 
 ## Isolation modes
 
 | Mode | Reads | Commit validation | Guarantees for tracked keys | Use when |
 |---|---|---|---|---|
-| `none` | latest | none | **none** — lost updates are expected | baseline/demo only |
+| `none` | latest | none | **none** â€” lost updates are expected | baseline/demo only |
 | `snapshot` | MVCC snapshot | write base versions (first-committer-wins) | no lost updates; **write skew possible** | high throughput, skew tolerated |
 | `optimistic` | MVCC snapshot | every read + write base version | serializable for the tracked key set | default |
 | `serializable` | MVCC snapshot | `optimistic` + serialization-graph audit | same as `optimistic`, with cycle diagnostics | audit/high assurance |
 | `pessimistic` | locked reads | strict 2PL, deadlock detection/timeout | serializable for locked keys | hot keys, predictable contention |
 
-Reads are tracked at **key granularity**. Predicate/range reads (`SELECT … WHERE`)
+Reads are tracked at **key granularity**. Predicate/range reads (`SELECT â€¦ WHERE`)
 are not tracked, so a transaction that depends on "no rows matched" is not
 protected from a concurrent insert. Read-only commits skip validation and do not
 consume a version.
@@ -174,7 +174,7 @@ instead of raising a mismatch. If you need strict payload binding, pass
 `idempotency_fingerprint` explicitly.
 
 External side effects use a separate journal (`IdempotentExecutor`,
-`MemoryEffectStore`) with `PENDING → EXECUTING → SUCCEEDED|FAILED` transitions and
+`MemoryEffectStore`) with `PENDING â†’ EXECUTING â†’ SUCCEEDED|FAILED` transitions and
 reserve/execute phases. This is at-most-once **completion**, not a distributed
 transaction.
 
@@ -204,7 +204,7 @@ after release or expiry. See [docs/leases.md](docs/leases.md).
 | Pessimistic locks | wait-for graph | polling + timeout | Lua + TTL |
 | Leases/fencing | in-memory | durable | durable |
 | Idempotency | in-memory | durable | TTL'd |
-| Extra | — | `pip install .[postgres]` | `pip install .[redis]` |
+| Extra | â€” | `pip install .[postgres]` | `pip install .[redis]` |
 
 PostgreSQL creates its schema on `connect()`. The commit path serializes
 validation and application behind one `pg_advisory_xact_lock`, which makes
@@ -242,13 +242,13 @@ async def reserve(state, session):
 graph.add_node("reserve", reserve)
 ```
 
-* `statepact.integrations.langgraph` — wrap graph nodes; merges the returned
+* `statepact.integrations.langgraph` â€” wrap graph nodes; merges the returned
   patch into state after commit.
-* `statepact.integrations.crewai` — `transaction_tool(...)` /
+* `statepact.integrations.crewai` â€” `transaction_tool(...)` /
   `TransactionTool`, a synchronous CrewAI tool over one atomic read-modify-write.
-* `statepact.integrations.autogen` — `AutoGenTransactionMiddleware`, a
+* `statepact.integrations.autogen` â€” `AutoGenTransactionMiddleware`, a
   transactional message handler with optional idempotency prefix.
-* `statepact.integrations.base` — `run_transaction`, `read_modify_write`,
+* `statepact.integrations.base` â€” `run_transaction`, `read_modify_write`,
   `transactional` for any other framework.
 
 See [docs/integrations.md](docs/integrations.md).
@@ -256,7 +256,7 @@ See [docs/integrations.md](docs/integrations.md).
 ## Benchmarks
 
 Measured on **2026-11-07** with the runner in this repository. Raw artifact:
-[`benchmarks/results/run-20261107T050148Z.json`](benchmarks/results/run-20261107T050148Z.json)
+[`benchmarks/results/run-20261107T051143Z.json`](benchmarks/results/run-20261107T051143Z.json)
 (`latest.json` is identical).
 
 Environment: Windows 11 `10.0.26300`, Python 3.12.13, AMD64 12-logical-CPU
@@ -268,24 +268,24 @@ VM, PostgreSQL 16 and Redis 7 in Docker Desktop on the same host. 40 agents,
 
 | Scenario | memory | PostgreSQL | Redis |
 |---|---:|---:|---:|
-| Independent keys | 1,763 (1.00 attempt/op) | 59.0 (1.00) | 230.4 (1.00) |
-| Single hot key, zero backoff | 347 (10.75) | 7.9 (13.38) | 19.7 (20.61) |
-| Single hot key, jittered backoff | 244 (3.27) | 7.9 (12.79) | 26.7 (14.28) |
-| Read-only commits | 6,939 | 139.3 | 479.7 |
-| Lease + commit (sequential) | 3,184 | 21.4 | 92.5 |
+| Independent keys | 1,534 (1.00 attempt/op) | 53.7 (1.00) | 229.4 (1.00) |
+| Single hot key, zero backoff | 344 (10.75) | 7.7 (13.56) | 18.8 (20.59) |
+| Single hot key, jittered backoff | 241 (3.17) | 7.8 (12.90) | 26.8 (14.15) |
+| Read-only commits | 6,619 | 133.4 | 427.4 |
+| Lease + commit (sequential) | 3,013 | 18.3 | 88.9 |
 
 **Correctness under the same load**
 
 | Check | memory | PostgreSQL | Redis |
 |---|---:|---:|---:|
-| `none`: counter after 400 increments | 10 ❌ | 24 ❌ | 10 ❌ |
-| `optimistic`: counter after 400 increments | 400 ✅ | 400 ✅ | 400 ✅ |
-| `snapshot`: write-skew violations | 20/20 ❌ | 20/20 ❌ | 20/20 ❌ |
-| `serializable`: write-skew violations | 0/20 ✅ | 0/20 ✅ | 0/20 ✅ |
+| `none`: counter after 400 increments | 10 âŒ | 24 âŒ | 10 âŒ |
+| `optimistic`: counter after 400 increments | 400 âœ… | 400 âœ… | 400 âœ… |
+| `snapshot`: write-skew violations | 20/20 âŒ | 20/20 âŒ | 20/20 âŒ |
+| `serializable`: write-skew violations | 0/20 âœ… | 0/20 âœ… | 0/20 âœ… |
 
 How to read these numbers:
 
-* The **correctness rows are the point**. `none` loses 376–390 of 400 updates;
+* The **correctness rows are the point**. `none` loses 376â€“390 of 400 updates;
   transactions prevent that, and the invariant holds at every commit.
 * Hot-key throughput is a **worst case**: 40 agents hammer one key with immediate
   retries. Every retry is a full commit attempt, so backends that serialize
@@ -310,14 +310,14 @@ Locust is not used. See [docs/benchmarks.md](docs/benchmarks.md) for methodology
 ## Architecture
 
 ```
-AgentSession ── staged reads/writes ──▶ Transaction ── CommitPlan ──▶ StorageBackend
-      │                                      │                         │
-      │                                      ├─ OCC validation         ├─ MemoryBackend
-      │                                      ├─ 2PL lock manager       ├─ PostgresBackend
-      │                                      ├─ serializability audit  └─ RedisBackend
-      │                                      └─ retry / idempotency
-      ├─ event bus / transaction log / metrics
-      └─ lease + fencing token
+AgentSession â”€â”€ staged reads/writes â”€â”€â–¶ Transaction â”€â”€ CommitPlan â”€â”€â–¶ StorageBackend
+      â”‚                                      â”‚                         â”‚
+      â”‚                                      â”œâ”€ OCC validation         â”œâ”€ MemoryBackend
+      â”‚                                      â”œâ”€ 2PL lock manager       â”œâ”€ PostgresBackend
+      â”‚                                      â”œâ”€ serializability audit  â””â”€ RedisBackend
+      â”‚                                      â””â”€ retry / idempotency
+      â”œâ”€ event bus / transaction log / metrics
+      â””â”€ lease + fencing token
 ```
 
 The session never applies state. It builds a `CommitPlan`; the backend validates
@@ -327,11 +327,11 @@ engines.
 
 ## API at a glance
 
-* `TransactionManager(backend=None)` — `resource`, `session`, `run`,
+* `TransactionManager(backend=None)` â€” `resource`, `session`, `run`,
   `run_outcome`, `lease`, `health_check`, `close`; `transactions`, `stats`.
-* `AgentSession` — `read`, `get`, `get_entry`, `version`, `write`, `delete`,
+* `AgentSession` â€” `read`, `get`, `get_entry`, `version`, `write`, `delete`,
   `commit`, `abort`; `state`, `read_set`, `write_set`, `commit_result`.
-* `SharedResource` — non-transactional diagnostics: `read`, `get`, `version`,
+* `SharedResource` â€” non-transactional diagnostics: `read`, `get`, `version`,
   `versions`, `history`, `state`, `snapshot`.
 * `RetryPolicy(max_attempts, base_delay, max_delay, multiplier, jitter, retry_on)`.
 * Observability: `EventBus`, `TransactionLog`, `Metrics`; optional OpenTelemetry
@@ -375,9 +375,9 @@ increment.
 
 ## Status
 
-**0.1.0 — alpha.** The semantics, tests and benchmarks are real; the API may still
+**0.1.0 â€” alpha.** The semantics, tests and benchmarks are real; the API may still
 change before 1.0. Known limitations are listed in
-[docs/limitations.md](docs/limitations.md) — notably: no predicate/range tracking,
+[docs/limitations.md](docs/limitations.md) â€” notably: no predicate/range tracking,
 the PostgreSQL backend is throughput-limited by its global commit lock, the
 serializability audit is process-local, and external side effects require
 cooperation for idempotency.
