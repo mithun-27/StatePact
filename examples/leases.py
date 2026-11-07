@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import asyncio
 
-from agentcommit import LeaseLostError, TransactionManager
+from statepact import LeaseLostError, TransactionManager
 
 
 async def main() -> None:

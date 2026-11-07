@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Reproducible AgentCommit benchmark runner.
+"""Reproducible StatePact benchmark runner.
 
 Everything reported here is measured on the machine that runs this script; no
 numbers are hard-coded. Results are written to ``benchmarks/results/`` as raw
@@ -9,7 +9,7 @@ Examples
 --------
     python benchmarks/run.py                      # in-memory backend
     python benchmarks/run.py --backends memory,redis
-    AGENTCOMMIT_TEST_POSTGRES_URL=... python benchmarks/run.py --backends postgres
+    STATEPACT_TEST_POSTGRES_URL=... python benchmarks/run.py --backends postgres
 
 The runner is intentionally in-process and deterministic. It measures the
 transaction engine, not HTTP throughput; Locust is therefore not used.
@@ -32,14 +32,14 @@ from typing import Any
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
-from agentcommit import (  # noqa: E402
+from statepact import (  # noqa: E402
     RetryPolicy,
     TransactionManager,
     __version__,
 )
-from agentcommit.observability.metrics import summarize_latencies  # noqa: E402
-from agentcommit.storage.memory import MemoryBackend  # noqa: E402
-from agentcommit.testing import run_concurrently  # noqa: E402
+from statepact.observability.metrics import summarize_latencies  # noqa: E402
+from statepact.storage.memory import MemoryBackend  # noqa: E402
+from statepact.testing import run_concurrently  # noqa: E402
 
 RESULTS = Path(__file__).resolve().parent / "results"
 FAST_RETRY = RetryPolicy(max_attempts=500, base_delay=0.0, jitter=0.0, max_delay=0.0)
@@ -76,7 +76,7 @@ def _environment() -> dict[str, Any]:
     except OSError:
         pass
     return {
-        "agentcommit": __version__,
+        "statepact": __version__,
         "python": sys.version.split()[0],
         "platform": platform.platform(),
         "machine": platform.machine(),
@@ -90,19 +90,19 @@ async def make_backend(kind: str) -> Any:
     if kind == "memory":
         return MemoryBackend()
     if kind == "postgres":
-        from agentcommit.storage.postgres import PostgresBackend
+        from statepact.storage.postgres import PostgresBackend
 
-        dsn = os.environ.get("AGENTCOMMIT_TEST_POSTGRES_URL")
+        dsn = os.environ.get("STATEPACT_TEST_POSTGRES_URL")
         if not dsn:
-            raise SystemExit("AGENTCOMMIT_TEST_POSTGRES_URL is required for postgres")
+            raise SystemExit("STATEPACT_TEST_POSTGRES_URL is required for postgres")
         return await PostgresBackend.connect(dsn)
     if kind == "redis":
-        from agentcommit.storage.redis import RedisBackend
+        from statepact.storage.redis import RedisBackend
 
-        url = os.environ.get("AGENTCOMMIT_TEST_REDIS_URL")
+        url = os.environ.get("STATEPACT_TEST_REDIS_URL")
         if not url:
-            raise SystemExit("AGENTCOMMIT_TEST_REDIS_URL is required for redis")
-        return await RedisBackend.connect(url, prefix=f"agentcommit-bench-{uuid.uuid4().hex[:8]}")
+            raise SystemExit("STATEPACT_TEST_REDIS_URL is required for redis")
+        return await RedisBackend.connect(url, prefix=f"statepact-bench-{uuid.uuid4().hex[:8]}")
     raise SystemExit(f"unknown backend: {kind}")
 
 
@@ -221,7 +221,7 @@ async def scenario_hot_key(
 async def scenario_baseline_none(
     manager: TransactionManager, agents: int, ops: int
 ) -> dict[str, Any]:
-    """The bug AgentCommit exists to prevent: unvalidated concurrent updates."""
+    """The bug StatePact exists to prevent: unvalidated concurrent updates."""
 
     resource = manager.resource(_resource_name("baseline"), {"counter": 0})
     errors: list[BaseException] = []

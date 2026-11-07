@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-AgentCommit is pre-1.0. Security fixes are applied to the latest released
+StatePact is pre-1.0. Security fixes are applied to the latest released
 version on PyPI and to `main`. There are no long-term support branches yet.
 
 ## Reporting a vulnerability
@@ -20,7 +20,7 @@ within three business days and to ship a fix, or a documented mitigation, within
 
 ## Scope
 
-AgentCommit coordinates shared mutable state. Its security-relevant properties
+StatePact coordinates shared mutable state. Its security-relevant properties
 are:
 
 * **Isolation** – a committed transaction must not silently lose another
@@ -58,7 +58,7 @@ Out of scope:
   Do not expose it to untrusted code.
 * **PostgreSQL** – use a dedicated role. `connect()` needs `CREATE TABLE` on the
   first run; after that, `SELECT`/`INSERT`/`UPDATE`/`DELETE` on the
-  `agentcommit_*` tables is enough. Use TLS and a secret manager for the DSN.
+  `statepact_*` tables is enough. Use TLS and a secret manager for the DSN.
 * **Redis** – enable authentication and TLS where the network is not trusted, and
   enable AOF or RDB persistence if commits must survive a restart. Namespace keys
   with a unique `prefix`.

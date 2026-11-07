@@ -1,4 +1,4 @@
-"""AgentCommit concurrency playground.
+"""StatePact concurrency playground.
 
 A small Gradio app that shows *why* an agent transaction layer matters. Every
 number is computed live in this process with the in-memory backend; nothing is
@@ -6,7 +6,7 @@ cached or pre-recorded.
 
 Run locally::
 
-    pip install agentcommit[demo]
+    pip install statepact[demo]
     python demo/app.py
 
 The pure functions (:func:`run_inventory`, :func:`run_counter`,
@@ -21,8 +21,8 @@ import time
 from dataclasses import dataclass
 from typing import Any
 
-from agentcommit import RetryPolicy, TransactionManager
-from agentcommit.storage.memory import MemoryBackend
+from statepact import RetryPolicy, TransactionManager
+from statepact.storage.memory import MemoryBackend
 
 MODES = ["none", "optimistic", "snapshot", "serializable", "pessimistic"]
 FAST_RETRY = RetryPolicy(max_attempts=200, base_delay=0.0, jitter=0.0, max_delay=0.0)
@@ -230,7 +230,9 @@ def run_selected(
             f"remaining **{experiment.actual}**."
         )
         if experiment.oversold:
-            headline += f"\n\n**{experiment.oversold} units oversold.** This is the bug AgentCommit prevents."
+            headline += (
+                f"\n\n**{experiment.oversold} units oversold.** This is the bug StatePact prevents."
+            )
         elif experiment.accepted > stock:
             headline += "\n\n**More reservations than stock were accepted.**"
         else:
@@ -264,16 +266,16 @@ def build_demo() -> Any:
     try:
         import gradio as gr
     except ImportError as exc:  # pragma: no cover - demo extra
-        raise SystemExit("Install the demo extra: pip install 'agentcommit[demo]'") from exc
+        raise SystemExit("Install the demo extra: pip install 'statepact[demo]'") from exc
 
-    with gr.Blocks(title="AgentCommit Concurrency Playground") as app:
+    with gr.Blocks(title="StatePact Concurrency Playground") as app:
         gr.Markdown(
             """
-# AgentCommit Concurrency Playground
+# StatePact Concurrency Playground
 
 Autonomous agents read shared state, think, and write it back. Without a
 transaction boundary, concurrent agents lose updates, oversell inventory and
-violate invariants. This playground runs the real AgentCommit engine in this
+violate invariants. This playground runs the real StatePact engine in this
 process and shows the difference between isolation modes.
 
 * `none` — plain reads and writes, no validation (benchmark baseline; unsafe).

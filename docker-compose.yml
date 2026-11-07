@@ -1,14 +1,16 @@
+name: statepact
+
 services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: agentcommit
-      POSTGRES_PASSWORD: agentcommit
-      POSTGRES_DB: agentcommit
+      POSTGRES_USER: statepact
+      POSTGRES_PASSWORD: statepact
+      POSTGRES_DB: statepact
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U agentcommit -d agentcommit"]
+      test: ["CMD-SHELL", "pg_isready -U statepact -d statepact"]
       interval: 2s
       timeout: 3s
       retries: 30
@@ -30,8 +32,8 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
-      AGENTCOMMIT_DATABASE_URL: postgresql://agentcommit:agentcommit@postgres:5432/agentcommit
-      AGENTCOMMIT_REDIS_URL: redis://redis:6379/0
+      STATEPACT_DATABASE_URL: postgresql://statepact:statepact@postgres:5432/statepact
+      STATEPACT_REDIS_URL: redis://redis:6379/0
       GRADIO_SERVER_NAME: 0.0.0.0
     ports:
       - "7860:7860"

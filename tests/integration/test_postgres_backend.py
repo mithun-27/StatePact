@@ -5,18 +5,18 @@ from collections.abc import AsyncIterator
 
 import pytest
 
-from agentcommit.storage.postgres import PostgresBackend
+from statepact.storage.postgres import PostgresBackend
 from tests.integration import backend_suite
 
 pytestmark = pytest.mark.postgres
 
-DSN = os.environ.get("AGENTCOMMIT_TEST_POSTGRES_URL")
+DSN = os.environ.get("STATEPACT_TEST_POSTGRES_URL")
 
 
 @pytest.fixture
 async def postgres() -> AsyncIterator[PostgresBackend]:
     if not DSN:
-        pytest.skip("AGENTCOMMIT_TEST_POSTGRES_URL is not set")
+        pytest.skip("STATEPACT_TEST_POSTGRES_URL is not set")
     backend = await PostgresBackend.connect(DSN, min_size=1, max_size=5)
     await backend.clear()
     try:

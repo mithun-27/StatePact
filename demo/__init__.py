@@ -1,1 +1,1 @@
-"""Interactive concurrency playground for AgentCommit."""
+"""Interactive concurrency playground for StatePact."""

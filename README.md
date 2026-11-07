@@ -1,17 +1,17 @@
-# AgentCommit
+# StatePact
 
 **Transaction management for autonomous AI agents.** Optimistic concurrency, MVCC,
 strict 2PL, serializability checking, retries, idempotent commits and
 lease/fencing tokens for state that multiple agents read and write.
 
-[![CI](https://github.com/mithun-27/AgentCommit/actions/workflows/ci.yml/badge.svg)](https://github.com/mithun-27/AgentCommit/actions/workflows/ci.yml)
+[![CI](https://github.com/mithun-27/StatePact/actions/workflows/ci.yml/badge.svg)](https://github.com/mithun-27/StatePact/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/)
-[![Playground](https://img.shields.io/badge/playground-live-6d5efc.svg)](https://huggingface.co/spaces/Mithun-2714/AgentCommit-Concurrency-Playground)
+[![Playground](https://img.shields.io/badge/playground-live-6d5efc.svg)](https://huggingface.co/spaces/Mithun-2714/StatePact-Concurrency-Playground)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/status-alpha-orange.svg)](#status)
 
 ```
-pip install agentcommit   # 0.1.0 release is pending; see Install below
+pip install statepact   # 0.1.0 release is pending; see Install below
 ```
 
 ---
@@ -29,7 +29,7 @@ await session.write("sku-1", stock - 1)
 Without a transaction boundary, two reservations both write `0`: one unit is sold
 twice, or a counter loses updates, or two agents both decide they are the one on
 call. Framework checkpointers persist *messages*, not **conflict detection across
-concurrent tool calls**. AgentCommit adds the missing concurrency layer:
+concurrent tool calls**. StatePact adds the missing concurrency layer:
 
 * **Isolation you choose** — `optimistic`, `snapshot`, `serializable`,
   `pessimistic`, or `none` as an explicitly unsafe baseline.
@@ -41,10 +41,10 @@ concurrent tool calls**. AgentCommit adds the missing concurrency layer:
   expired cannot overwrite the new owner.
 * **Backends you can deploy** — process-local memory, PostgreSQL, or Redis.
 
-AgentCommit is framework-independent. LangGraph, CrewAI and AutoGen adapters are
+StatePact is framework-independent. LangGraph, CrewAI and AutoGen adapters are
 thin optional wrappers; the same engine works with a custom agent loop.
 
-Try the [live concurrency playground](https://huggingface.co/spaces/Mithun-2714/AgentCommit-Concurrency-Playground).
+Try the [live concurrency playground](https://huggingface.co/spaces/Mithun-2714/StatePact-Concurrency-Playground).
 It is a browser simulation of the same validation rules (free static hosting),
 not the Python engine; the runnable Python demo is in [`demo/`](demo/).
 
@@ -65,8 +65,8 @@ not the Python engine; the runnable Python demo is in [`demo/`](demo/).
 configured). Install from source in the meantime:
 
 ```bash
-git clone https://github.com/mithun-27/AgentCommit
-cd AgentCommit
+git clone https://github.com/mithun-27/StatePact
+cd StatePact
 python -m pip install .            # core, in-memory backend only
 python -m pip install ".[postgres]" # + asyncpg
 python -m pip install ".[redis]"    # + redis
@@ -80,7 +80,7 @@ optional extras. `uv sync --extra dev` sets up the development environment.
 
 ```python
 import asyncio
-from agentcommit import RetryPolicy, TransactionManager
+from statepact import RetryPolicy, TransactionManager
 
 
 async def main() -> None:
@@ -200,7 +200,7 @@ after release or expiry. See [docs/leases.md](docs/leases.md).
 | Scope | one process | multi-process | multi-process |
 | Durable | no | yes (tables) | yes (prefix) |
 | Commit atomicity | asyncio lock | DB transaction + advisory lock | Lua script |
-| MVCC history | in-memory, GC'd | `agentcommit_history` | capped Redis lists |
+| MVCC history | in-memory, GC'd | `statepact_history` | capped Redis lists |
 | Pessimistic locks | wait-for graph | polling + timeout | Lua + TTL |
 | Leases/fencing | in-memory | durable | durable |
 | Idempotency | in-memory | durable | TTL'd |
@@ -213,7 +213,7 @@ commit as one Lua script. The memory backend is the semantic reference and is
 used by the test suite; it is not safe across processes.
 
 ```python
-from agentcommit.storage.postgres import PostgresBackend
+from statepact.storage.postgres import PostgresBackend
 
 backend = await PostgresBackend.connect("postgresql://user:pass@host/db")
 manager = TransactionManager(backend)
@@ -223,11 +223,11 @@ See [docs/backends.md](docs/backends.md) for schemas, key layout and trade-offs.
 
 ## Integrations
 
-Framework adapters live in `agentcommit.integrations` and do not import the
+Framework adapters live in `statepact.integrations` and do not import the
 framework at module load:
 
 ```python
-from agentcommit.integrations.langgraph import LangGraphCoordinator
+from statepact.integrations.langgraph import LangGraphCoordinator
 
 coordinator = LangGraphCoordinator(manager, agent_id="researcher", resources=[inventory])
 
@@ -242,21 +242,21 @@ async def reserve(state, session):
 graph.add_node("reserve", reserve)
 ```
 
-* `agentcommit.integrations.langgraph` — wrap graph nodes; merges the returned
+* `statepact.integrations.langgraph` — wrap graph nodes; merges the returned
   patch into state after commit.
-* `agentcommit.integrations.crewai` — `transaction_tool(...)` /
+* `statepact.integrations.crewai` — `transaction_tool(...)` /
   `TransactionTool`, a synchronous CrewAI tool over one atomic read-modify-write.
-* `agentcommit.integrations.autogen` — `AutoGenTransactionMiddleware`, a
+* `statepact.integrations.autogen` — `AutoGenTransactionMiddleware`, a
   transactional message handler with optional idempotency prefix.
-* `agentcommit.integrations.base` — `run_transaction`, `read_modify_write`,
+* `statepact.integrations.base` — `run_transaction`, `read_modify_write`,
   `transactional` for any other framework.
 
 See [docs/integrations.md](docs/integrations.md).
 
 ## Benchmarks
 
-Measured on **2026-11-06** with the runner in this repository. Raw artifact:
-[`benchmarks/results/run-20261106T181436Z.json`](benchmarks/results/run-20261106T181436Z.json)
+Measured on **2026-11-07** with the runner in this repository. Raw artifact:
+[`benchmarks/results/run-20261107T050148Z.json`](benchmarks/results/run-20261107T050148Z.json)
 (`latest.json` is identical).
 
 Environment: Windows 11 `10.0.26300`, Python 3.12.13, AMD64 12-logical-CPU
@@ -268,11 +268,11 @@ VM, PostgreSQL 16 and Redis 7 in Docker Desktop on the same host. 40 agents,
 
 | Scenario | memory | PostgreSQL | Redis |
 |---|---:|---:|---:|
-| Independent keys | 1,664 (1.00 attempt/op) | 59.7 (1.00) | 219.8 (1.00) |
-| Single hot key, zero backoff | 348 (10.75) | 8.3 (13.03) | 19.5 (20.60) |
-| Single hot key, jittered backoff | 246 (3.31) | 7.6 (13.03) | 26.7 (14.21) |
-| Read-only commits | 6,378 | 130.6 | 415.3 |
-| Lease + commit (sequential) | 3,133 | 18.6 | 93.8 |
+| Independent keys | 1,763 (1.00 attempt/op) | 59.0 (1.00) | 230.4 (1.00) |
+| Single hot key, zero backoff | 347 (10.75) | 7.9 (13.38) | 19.7 (20.61) |
+| Single hot key, jittered backoff | 244 (3.27) | 7.9 (12.79) | 26.7 (14.28) |
+| Read-only commits | 6,939 | 139.3 | 479.7 |
+| Lease + commit (sequential) | 3,184 | 21.4 | 92.5 |
 
 **Correctness under the same load**
 
@@ -299,8 +299,8 @@ How to read these numbers:
 
 ```bash
 docker compose up -d postgres redis
-AGENTCOMMIT_TEST_POSTGRES_URL=postgresql://agentcommit:agentcommit@localhost:5432/agentcommit \
-AGENTCOMMIT_TEST_REDIS_URL=redis://localhost:6379/0 \
+STATEPACT_TEST_POSTGRES_URL=postgresql://statepact:statepact@localhost:5432/statepact \
+STATEPACT_TEST_REDIS_URL=redis://localhost:6379/0 \
 python benchmarks/run.py --backends memory,postgres,redis --agents 40 --ops 10 --trials 20
 ```
 
@@ -335,7 +335,7 @@ engines.
   `versions`, `history`, `state`, `snapshot`.
 * `RetryPolicy(max_attempts, base_delay, max_delay, multiplier, jitter, retry_on)`.
 * Observability: `EventBus`, `TransactionLog`, `Metrics`; optional OpenTelemetry
-  bridge in `agentcommit.observability.otel`.
+  bridge in `statepact.observability.otel`.
 
 Full reference: [docs/api.md](docs/api.md).
 
@@ -363,8 +363,8 @@ uv run pytest -q                 # 121 tests; 14 integration tests skip without 
 uv run ruff check src tests demo benchmarks
 uv run mypy src
 docker compose up -d postgres redis
-AGENTCOMMIT_TEST_POSTGRES_URL=postgresql://agentcommit:agentcommit@localhost:5432/agentcommit \
-AGENTCOMMIT_TEST_REDIS_URL=redis://localhost:6379/0 \
+STATEPACT_TEST_POSTGRES_URL=postgresql://statepact:statepact@localhost:5432/statepact \
+STATEPACT_TEST_REDIS_URL=redis://localhost:6379/0 \
 uv run pytest tests/integration -q
 ```
 

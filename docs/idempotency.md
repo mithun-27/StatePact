@@ -6,7 +6,7 @@ Two different problems need two different tools:
    after an ambiguous timeout) and must not apply its writes twice. This is
    built into the storage backends.
 2. **External side effects** — a card charge, email or third-party API call
-   cannot join a database transaction. AgentCommit provides a separate effect
+   cannot join a database transaction. StatePact provides a separate effect
    journal with at-most-once *completion*.
 
 ## Idempotent commits
@@ -106,7 +106,7 @@ from the external system, the choice is at-least-once or at-most-once. The
 effect journal gives **at-least-once execution with at-most-once completion**:
 
 ```python
-from agentcommit import IdempotentExecutor, MemoryEffectStore
+from statepact import IdempotentExecutor, MemoryEffectStore
 
 effects = IdempotentExecutor(MemoryEffectStore())
 
@@ -150,7 +150,7 @@ effect stays `PENDING`. A recovery worker can inspect the journal and decide to
 execute or compensate. If it dies after the external call but before recording
 `SUCCEEDED`, the effect is `EXECUTING` and must be reconciled with the provider.
 Passing an idempotency key to the provider is what makes that reconciliation
-safe. AgentCommit does not pretend to solve this without provider support.
+safe. StatePact does not pretend to solve this without provider support.
 
 `MemoryEffectStore` is process-local and intended for tests and examples. For
 production, implement the four-method `EffectStore` interface on your database

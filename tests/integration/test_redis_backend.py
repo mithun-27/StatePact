@@ -5,19 +5,19 @@ from collections.abc import AsyncIterator
 
 import pytest
 
-from agentcommit.storage.redis import RedisBackend
+from statepact.storage.redis import RedisBackend
 from tests.integration import backend_suite
 
 pytestmark = pytest.mark.redis
 
-URL = os.environ.get("AGENTCOMMIT_TEST_REDIS_URL")
+URL = os.environ.get("STATEPACT_TEST_REDIS_URL")
 
 
 @pytest.fixture
 async def redis_backend() -> AsyncIterator[RedisBackend]:
     if not URL:
-        pytest.skip("AGENTCOMMIT_TEST_REDIS_URL is not set")
-    backend = await RedisBackend.connect(URL, prefix="agentcommit-test")
+        pytest.skip("STATEPACT_TEST_REDIS_URL is not set")
+    backend = await RedisBackend.connect(URL, prefix="statepact-test")
     await backend.clear()
     try:
         yield backend

@@ -4,8 +4,8 @@ import random
 
 import pytest
 
-from agentcommit import ConflictError, RetryExhaustedError, RetryPolicy, TransactionManager
-from agentcommit.coordination.retry import run_with_retry
+from statepact import ConflictError, RetryExhaustedError, RetryPolicy, TransactionManager
+from statepact.coordination.retry import run_with_retry
 
 
 class FakeSleep:

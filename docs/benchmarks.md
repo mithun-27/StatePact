@@ -5,12 +5,12 @@ in-process against the real memory, PostgreSQL and Redis backends and records
 both throughput and **correctness invariants**.
 
 Raw artifact for the published run:
-[`benchmarks/results/run-20261106T181436Z.json`](https://github.com/mithun-27/AgentCommit/blob/main/benchmarks/results/run-20261106T181436Z.json).
+[`benchmarks/results/run-20261107T050148Z.json`](https://github.com/mithun-27/StatePact/blob/main/benchmarks/results/run-20261107T050148Z.json).
 `latest.json` is identical.
 
 ## Methodology
 
-* **Date:** 2026-11-06.
+* **Date:** 2026-11-07.
 * **Environment:** Windows 11 `10.0.26300`, Python 3.12.13, AMD64 12-logical-CPU
   VM. PostgreSQL 16 and Redis 7 in Docker Desktop on the same host. Services
   reached over Docker port forwarding.
@@ -30,22 +30,22 @@ Raw artifact for the published run:
 * **Namespacing:** every resource gets a per-run suffix, so a durable backend
   never reads a previous run's state.
 * **No warm-up phase and no result filtering.** Wall time for the complete run:
-  **169.2 s**.
+  **168.3 s**.
 
 Reproduce:
 
 ```bash
 docker compose up -d postgres redis
-AGENTCOMMIT_TEST_POSTGRES_URL=postgresql://agentcommit:agentcommit@localhost:5432/agentcommit \
-AGENTCOMMIT_TEST_REDIS_URL=redis://localhost:6379/0 \
+STATEPACT_TEST_POSTGRES_URL=postgresql://statepact:statepact@localhost:5432/statepact \
+STATEPACT_TEST_REDIS_URL=redis://localhost:6379/0 \
 python benchmarks/run.py --backends memory,postgres,redis --agents 40 --ops 10 --trials 20
 ```
 
 On Windows PowerShell:
 
 ```powershell
-$env:AGENTCOMMIT_TEST_POSTGRES_URL='postgresql://agentcommit:agentcommit@localhost:5432/agentcommit'
-$env:AGENTCOMMIT_TEST_REDIS_URL='redis://localhost:6379/0'
+$env:STATEPACT_TEST_POSTGRES_URL='postgresql://statepact:statepact@localhost:5432/statepact'
+$env:STATEPACT_TEST_REDIS_URL='redis://localhost:6379/0'
 uv run python benchmarks/run.py --backends memory,postgres,redis --agents 40 --ops 10 --trials 20
 ```
 
@@ -61,11 +61,11 @@ Committed operations per second. The number in parentheses is
 
 | Scenario | memory | PostgreSQL | Redis |
 |---|---:|---:|---:|
-| Independent keys | 1,664 (1.00) | 59.7 (1.00) | 219.8 (1.00) |
-| Hot key, zero backoff | 348 (10.75) | 8.3 (13.03) | 19.5 (20.60) |
-| Hot key, jittered backoff | 246 (3.31) | 7.6 (13.03) | 26.7 (14.21) |
-| Read-only commits | 6,378 | 130.6 | 415.3 |
-| Lease + commit (sequential) | 3,133 | 18.6 | 93.8 |
+| Independent keys | 1,763 (1.00) | 59.0 (1.00) | 230.4 (1.00) |
+| Hot key, zero backoff | 347 (10.75) | 7.9 (13.38) | 19.7 (20.61) |
+| Hot key, jittered backoff | 244 (3.27) | 7.9 (12.79) | 26.7 (14.28) |
+| Read-only commits | 6,939 | 139.3 | 479.7 |
+| Lease + commit (sequential) | 3,184 | 21.4 | 92.5 |
 
 Throughput is `400 / wall_seconds` for each scenario. A retry is a full commit
 attempt, so hot-key rows pay for every conflict.
@@ -78,11 +78,11 @@ operations are fast; operations that lose many races pay the tail.
 
 | Scenario | memory p50 / p95 | PostgreSQL p50 / p95 | Redis p50 / p95 |
 |---|---:|---:|---:|
-| Independent keys | 22.9 / 29.5 | 615.0 / 904.5 | 133.5 / 557.8 |
-| Hot key, zero backoff | 2.5 / 822.5 | 2,881.5 / 13,154.3 | 57.1 / 14,862.1 |
-| Hot key, jittered backoff | 0.3 / 832.5 | 3,200.1 / 12,979.3 | 453.2 / 5,488.6 |
-| Read-only commits | 0.13 / 0.21 | 282.7 / 421.8 | 94.3 / 107.0 |
-| Lease + commit | 0.30 / 0.38 | 52.2 / 66.6 | 10.6 / 11.3 |
+| Independent keys | 22.3 / 23.2 | 622.5 / 855.6 | 129.7 / 520.2 |
+| Hot key, zero backoff | 2.5 / 842.3 | 2,791.3 / 14,620.3 | 53.0 / 14,679.3 |
+| Hot key, jittered backoff | 0.3 / 762.6 | 2,823.9 / 14,603.4 | 432.9 / 5,036.3 |
+| Read-only commits | 0.13 / 0.16 | 270.7 / 380.9 | 80.4 / 92.0 |
+| Lease + commit | 0.29 / 0.36 | 46.4 / 50.6 | 10.8 / 12.0 |
 
 The p50 for memory is low because a successful transaction does very little. The
 tail is the cost of losing races. PostgreSQL's p50 includes several round trips
@@ -108,7 +108,7 @@ trial; `optimistic` and `serializable` reject one side.
 
 ## How to read these numbers honestly
 
-* **They are not a comparison with other libraries.** They document AgentCommit
+* **They are not a comparison with other libraries.** They document StatePact
   on one machine at one moment.
 * **The hot-key scenario is a worst case** for optimistic retries: 40 agents
   hammer one key with immediate retries. It is not a typical workload.

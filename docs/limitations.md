@@ -1,12 +1,12 @@
 # Limitations
 
-AgentCommit is a transaction coordination layer, not a database, workflow engine
+StatePact is a transaction coordination layer, not a database, workflow engine
 or distributed transaction protocol. Its semantics are deliberately narrow so the
 same contract can be implemented correctly by three very different backends.
 
 ## Key granularity only
 
-AgentCommit tracks individual keys inside a named resource. Predicate reads,
+StatePact tracks individual keys inside a named resource. Predicate reads,
 range scans and "no rows matched" conditions are not tracked.
 
 ```python
@@ -56,7 +56,7 @@ The effect journal (`IdempotentExecutor` + an `EffectStore`) gives at-most-once
 **completion**, not exactly-once delivery. If a charge succeeds and the process
 dies before recording `SUCCEEDED`, the effect stays `EXECUTING` and must be
 reconciled with the provider. Provider-side idempotency keys are what make that
-safe. AgentCommit does not pretend otherwise.
+safe. StatePact does not pretend otherwise.
 
 ## No distributed transactions across backends or services
 
@@ -73,7 +73,7 @@ when commit throughput matters more than SQL-side durability.
 
 ## Redis durability depends on server configuration
 
-AgentCommit writes through the Redis protocol; it does not fsync. An instance with
+StatePact writes through the Redis protocol; it does not fsync. An instance with
 persistence disabled can lose recently committed state on restart. The bundled
 `docker-compose.yml` enables AOF, but that is a local development default, not a
 production guarantee.
@@ -112,7 +112,7 @@ invariant and do not mix them casually.
 
 ## No built-in conflict resolution policy
 
-AgentCommit retries with backoff. It does not implement last-writer-wins,
+StatePact retries with backoff. It does not implement last-writer-wins,
 compensation, automatic merging or CRDTs. Those belong in application code.
 
 ## Observability is optional
@@ -132,7 +132,7 @@ are tested against the versions in the development environment, not every versio
 0.1.0 is alpha. The core transaction path is tested against the invariants in
 [docs/benchmarks.md](benchmarks.md), but the public API may change before 1.0.0.
 Pin an exact version in production and read the
-[changelog](https://github.com/mithun-27/AgentCommit/blob/main/CHANGELOG.md) before upgrading.
+[changelog](https://github.com/mithun-27/StatePact/blob/main/CHANGELOG.md) before upgrading.
 
 ## Getting help
 

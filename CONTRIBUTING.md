@@ -1,6 +1,6 @@
-# Contributing to AgentCommit
+# Contributing to StatePact
 
-Thanks for taking the time to contribute. AgentCommit is correctness-first: a
+Thanks for taking the time to contribute. StatePact is correctness-first: a
 change that makes an isolation guarantee weaker, even if it is faster, is a
 regression.
 
@@ -10,8 +10,8 @@ Requirements: Python 3.12+, [uv](https://docs.astral.sh/uv/), and optionally
 Docker for the PostgreSQL and Redis services.
 
 ```bash
-git clone https://github.com/mithun-27/AgentCommit
-cd AgentCommit
+git clone https://github.com/mithun-27/StatePact
+cd StatePact
 uv sync --extra dev
 ```
 
@@ -28,8 +28,8 @@ Run the integration suite against real services:
 ```bash
 docker compose up -d postgres redis
 
-export AGENTCOMMIT_TEST_POSTGRES_URL='postgresql://agentcommit:agentcommit@localhost:5432/agentcommit'
-export AGENTCOMMIT_TEST_REDIS_URL='redis://localhost:6379/0'
+export STATEPACT_TEST_POSTGRES_URL='postgresql://statepact:statepact@localhost:5432/statepact'
+export STATEPACT_TEST_REDIS_URL='redis://localhost:6379/0'
 
 uv run pytest tests/integration -q
 ```
@@ -52,9 +52,9 @@ a backend, make it pass that suite before adding backend-specific tests.
 
 * Ruff enforces linting and formatting (`uv run ruff format --check ...`).
 * mypy runs in strict mode over `src/`. New public functions need annotations.
-* Keep the public API small. Internals live under `agentcommit.core`,
-  `agentcommit.concurrency`, `agentcommit.coordination` and
-  `agentcommit.storage`.
+* Keep the public API small. Internals live under `statepact.core`,
+  `statepact.concurrency`, `statepact.coordination` and
+  `statepact.storage`.
 * Framework adapters must not import their framework at module load. Keep the
   adapter surface thin and test it without the framework installed.
 * Prefer explicit errors over silent fallbacks. Every failure path should answer:
@@ -74,7 +74,7 @@ Beyond line coverage, these invariants are the contract:
 * An unknown commit failure is recorded as `FAILED`, never assumed committed.
 
 Property tests use Hypothesis; keep them deterministic with a fixed seed when
-reporting a failure. Concurrency tests should use `agentcommit.testing.run_concurrently`.
+reporting a failure. Concurrency tests should use `statepact.testing.run_concurrently`.
 
 ## Commit messages
 
@@ -122,7 +122,7 @@ you cite numbers in docs, cite the artifact filename.
 
 Release steps are maintainer-only and require PyPI Trusted Publishing:
 
-1. Update the version in `src/agentcommit/__about__.py` and `CHANGELOG.md`.
+1. Update the version in `src/statepact/__about__.py` and `CHANGELOG.md`.
 2. `uv build` and `uvx twine check dist/*`.
 3. Tag `vX.Y.Z` and publish a GitHub release; the `publish.yml` workflow
    publishes to PyPI through the `pypi` environment.

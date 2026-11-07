@@ -1,6 +1,6 @@
 # Backends
 
-AgentCommit ships three implementations of the same `StorageBackend` contract.
+StatePact ships three implementations of the same `StorageBackend` contract.
 The test suite runs one behavioural suite against all three, so conflicts,
 idempotent replay, leases, fencing, locking, history and concurrency are checked
 identically.
@@ -11,18 +11,18 @@ identically.
 | Durable | no | yes, SQL tables | depends on Redis persistence |
 | Commit atomicity | one `asyncio.Lock` | DB transaction + advisory lock | one Lua script |
 | Cross-process commits | no | yes | yes |
-| MVCC history | in-memory, GC'd | `agentcommit_history` | capped Redis lists |
+| MVCC history | in-memory, GC'd | `statepact_history` | capped Redis lists |
 | Pessimistic locks | wait-for graph | polling + timeout | Lua + TTL |
 | Leases / fencing | in-memory | durable | durable |
 | Idempotency | in-memory | durable | TTL (30 days default) |
 | Driver | none | `asyncpg` | `redis` |
-| Extra | — | `agentcommit[postgres]` | `agentcommit[redis]` |
+| Extra | — | `statepact[postgres]` | `statepact[redis]` |
 
 ## MemoryBackend
 
 ```python
-from agentcommit import TransactionManager
-from agentcommit.storage.memory import MemoryBackend
+from statepact import TransactionManager
+from statepact.storage.memory import MemoryBackend
 
 backend = MemoryBackend()
 manager = TransactionManager(backend)
@@ -53,10 +53,10 @@ tests, notebooks, the demo, and any single-process agent runtime.
 
 ```python
 import os
-from agentcommit import TransactionManager
-from agentcommit.storage.postgres import PostgresBackend
+from statepact import TransactionManager
+from statepact.storage.postgres import PostgresBackend
 
-backend = await PostgresBackend.connect(os.environ["AGENTCOMMIT_DATABASE_URL"])
+backend = await PostgresBackend.connect(os.environ["STATEPACT_DATABASE_URL"])
 manager = TransactionManager(backend)
 ```
 
@@ -67,13 +67,13 @@ schema if it does not exist. The default pool is 1–10 connections.
 
 | Table | Purpose |
 |---|---|
-| `agentcommit_meta` | single row with the global commit sequence |
-| `agentcommit_resources` | resource registry, metadata, last commit time |
-| `agentcommit_values` | current value per `(resource, key)` |
-| `agentcommit_history` | every committed value with its version |
-| `agentcommit_idempotency` | key → request fingerprint, version, timestamp |
-| `agentcommit_locks` | pessimistic lock rows with optional expiry |
-| `agentcommit_leases` | owner, monotonic token, expiry, TTL |
+| `statepact_meta` | single row with the global commit sequence |
+| `statepact_resources` | resource registry, metadata, last commit time |
+| `statepact_values` | current value per `(resource, key)` |
+| `statepact_history` | every committed value with its version |
+| `statepact_idempotency` | key → request fingerprint, version, timestamp |
+| `statepact_locks` | pessimistic lock rows with optional expiry |
+| `statepact_leases` | owner, monotonic token, expiry, TTL |
 
 The user needs `CREATE TABLE` permission on first connect (or the schema must be
 pre-created by an administrator). The tables are ordinary SQL; back them up with
@@ -87,7 +87,7 @@ your normal database tooling.
 4. Read latest versions for the read and write sets.
 5. Validate according to the isolation mode.
 6. Serializability audit for `serializable` (process-local graph).
-7. Increment `agentcommit_meta.seq`, write values and history, update metadata.
+7. Increment `statepact_meta.seq`, write values and history, update metadata.
 8. Store the idempotency record, `COMMIT`.
 
 The advisory lock makes cross-process commits linearizable. It also serialises
@@ -105,11 +105,11 @@ allocation is atomic per resource.
 
 ```python
 await manager.health_check()      # SELECT 1
-await backend.clear()             # truncate AgentCommit tables, reset seq
+await backend.clear()             # truncate StatePact tables, reset seq
 await manager.close()             # closes the pool
 ```
 
-`clear()` is a test/playground helper. It truncates the AgentCommit tables in the
+`clear()` is a test/playground helper. It truncates the StatePact tables in the
 schema configured at ``connect()`` (defaults to the public schema if not set) and
 resets the sequence; it does not touch other tables.
 
@@ -132,8 +132,8 @@ advisory lock.
 ## RedisBackend
 
 ```python
-from agentcommit import TransactionManager
-from agentcommit.storage.redis import RedisBackend
+from statepact import TransactionManager
+from statepact.storage.redis import RedisBackend
 
 backend = await RedisBackend.connect(
     "redis://localhost:6379/0",
@@ -172,7 +172,7 @@ treated as a new commit. Choose a TTL that covers your retry/replay horizon.
 
 Redis durability is a **server configuration choice**. The bundled
 `docker-compose.yml` enables AOF (`--appendonly yes`), but a managed Redis with no
-persistence can lose recently committed state on restart. AgentCommit does not
+persistence can lose recently committed state on restart. StatePact does not
 sync to disk itself.
 
 `serializable` uses full read validation on Redis. The in-memory
@@ -188,7 +188,7 @@ backward validation is the portable guarantee.
 | Low-latency shared coordination, TTL semantics | Redis |
 | Multiple app instances + accidental commit volume | PostgreSQL (sharded) or Redis |
 
-Do not put domain data only in AgentCommit's coordination tables and call it a
+Do not put domain data only in StatePact's coordination tables and call it a
 database. The values are JSON and the API is intentionally small. Treat the
 backend as the coordination layer and keep your domain store where it belongs.
 

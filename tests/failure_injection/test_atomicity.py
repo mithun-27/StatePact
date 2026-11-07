@@ -6,9 +6,9 @@ import asyncio
 
 import pytest
 
-from agentcommit import ConflictError, TransactionManager
-from agentcommit.storage.memory import MemoryBackend
-from agentcommit.testing import run_concurrently
+from statepact import ConflictError, TransactionManager
+from statepact.storage.memory import MemoryBackend
+from statepact.testing import run_concurrently
 
 
 class InjectedFaultError(RuntimeError):

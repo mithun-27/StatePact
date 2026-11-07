@@ -11,8 +11,8 @@
 PyPI publication of 0.1.0 is pending. Install from source:
 
 ```bash
-git clone https://github.com/mithun-27/AgentCommit
-cd AgentCommit
+git clone https://github.com/mithun-27/StatePact
+cd StatePact
 python -m pip install ".[postgres,redis]"
 ```
 
@@ -26,7 +26,7 @@ uv sync --extra dev
 
 ```python
 import asyncio
-from agentcommit import TransactionManager
+from statepact import TransactionManager
 
 
 async def main() -> None:
@@ -53,7 +53,7 @@ the transaction, releasing snapshots and any pessimistic locks.
 ## 2. Retry a conflicting transaction
 
 ```python
-from agentcommit import RetryPolicy
+from statepact import RetryPolicy
 
 stock = await manager.run(
     "agent-1",
@@ -105,16 +105,16 @@ explicitly.
 
 ```bash
 docker compose up -d postgres
-export AGENTCOMMIT_DATABASE_URL=postgresql://agentcommit:agentcommit@localhost:5432/agentcommit
+export STATEPACT_DATABASE_URL=postgresql://statepact:statepact@localhost:5432/statepact
 ```
 
 ```python
 import os
 
-from agentcommit import TransactionManager
-from agentcommit.storage.postgres import PostgresBackend
+from statepact import TransactionManager
+from statepact.storage.postgres import PostgresBackend
 
-dsn = os.environ["AGENTCOMMIT_DATABASE_URL"]
+dsn = os.environ["STATEPACT_DATABASE_URL"]
 backend = await PostgresBackend.connect(dsn)
 manager = TransactionManager(backend)
 ```
@@ -129,7 +129,7 @@ docker compose up -d redis
 ```
 
 ```python
-from agentcommit.storage.redis import RedisBackend
+from statepact.storage.redis import RedisBackend
 
 backend = await RedisBackend.connect("redis://localhost:6379/0", prefix="myapp")
 manager = TransactionManager(backend)

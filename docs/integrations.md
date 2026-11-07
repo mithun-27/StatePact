@@ -7,15 +7,15 @@ dependency on LangGraph, CrewAI or AutoGen.
 
 | Adapter | Module | Shape |
 |---|---|---|
-| Generic | `agentcommit.integrations.base` | `run_transaction`, `transactional`, `read_modify_write`, `run_sync` |
-| LangGraph | `agentcommit.integrations.langgraph` | `LangGraphCoordinator.node`, `.update` |
-| CrewAI | `agentcommit.integrations.crewai` | `transaction_tool`, `TransactionTool`, `build_tools` |
-| AutoGen | `agentcommit.integrations.autogen` | `AutoGenTransactionMiddleware`, `transactional_handler` |
+| Generic | `statepact.integrations.base` | `run_transaction`, `transactional`, `read_modify_write`, `run_sync` |
+| LangGraph | `statepact.integrations.langgraph` | `LangGraphCoordinator.node`, `.update` |
+| CrewAI | `statepact.integrations.crewai` | `transaction_tool`, `TransactionTool`, `build_tools` |
+| AutoGen | `statepact.integrations.autogen` | `AutoGenTransactionMiddleware`, `transactional_handler` |
 
 ## Generic helpers
 
 ```python
-from agentcommit.integrations.base import (
+from statepact.integrations.base import (
     TransactionRequest,
     read_modify_write,
     run_transaction,
@@ -41,7 +41,7 @@ Most agent tools are one atomic read-modify-write. Use this instead of
 hand-rolling a session:
 
 ```python
-from agentcommit.integrations.base import read_modify_write
+from statepact.integrations.base import read_modify_write
 
 new_stock, commit = await read_modify_write(
     manager,
@@ -62,7 +62,7 @@ snapshot.
 ### Decorator and sync bridge
 
 ```python
-from agentcommit.integrations.base import transactional
+from statepact.integrations.base import transactional
 
 @transactional(manager, agent_id="worker", resources=[inventory])
 async def reserve(session):
@@ -80,7 +80,7 @@ Wrap a node with `LangGraphCoordinator.node`. The node receives
 **after** the commit. A conflict retries the whole node with a fresh snapshot.
 
 ```python
-from agentcommit.integrations.langgraph import LangGraphCoordinator
+from statepact.integrations.langgraph import LangGraphCoordinator
 
 coordinator = LangGraphCoordinator(
     manager,
@@ -123,7 +123,7 @@ CrewAI tools are synchronous callables with `name`, `description` and `run`.
 returns a JSON string:
 
 ```python
-from agentcommit.integrations.crewai import transaction_tool
+from statepact.integrations.crewai import transaction_tool
 
 reserve = transaction_tool(
     manager,
@@ -154,7 +154,7 @@ tools sharing one agent and policy.
 Wrap a message handler with `AutoGenTransactionMiddleware.transactional`:
 
 ```python
-from agentcommit.integrations.autogen import AutoGenTransactionMiddleware
+from statepact.integrations.autogen import AutoGenTransactionMiddleware
 
 middleware = AutoGenTransactionMiddleware(
     manager,
@@ -213,8 +213,8 @@ async def tool_call(tool_input, *, run_id: str):
   effects use the idempotency key or the effect journal
   ([Idempotency](idempotency.md)).
 * Do not store the session in framework state. It is valid for one attempt only.
-* Use `current_session()` from `agentcommit` to discover the active session in
+* Use `current_session()` from `statepact` to discover the active session in
   helper functions.
 
-See runnable examples in [`examples/`](https://github.com/mithun-27/AgentCommit/tree/main/examples)
+See runnable examples in [`examples/`](https://github.com/mithun-27/StatePact/tree/main/examples)
 and the adapter tests in `tests/unit/test_integrations.py`.

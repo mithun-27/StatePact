@@ -2,10 +2,10 @@ from __future__ import annotations
 
 import asyncio
 
-from agentcommit import EventType, TransactionManager
-from agentcommit.observability.events import Event, EventBus
-from agentcommit.observability.metrics import Metrics, summarize_latencies
-from agentcommit.observability.transaction_logs import TransactionLog
+from statepact import EventType, TransactionManager
+from statepact.observability.events import Event, EventBus
+from statepact.observability.metrics import Metrics, summarize_latencies
+from statepact.observability.transaction_logs import TransactionLog
 
 
 async def test_event_bus_history_and_unsubscribe() -> None:
@@ -73,7 +73,7 @@ def test_transaction_log_filters(manager: TransactionManager) -> None:
     # Covered end-to-end by the session tests, exercised here for the query API.
     from datetime import UTC, datetime
 
-    from agentcommit.observability.transaction_logs import (
+    from statepact.observability.transaction_logs import (
         TransactionRecord,
         TransactionStatus,
     )
@@ -103,7 +103,7 @@ async def test_session_metrics_and_events(manager: TransactionManager) -> None:
         await session.write("k", 2)
         await session.commit()
     snapshot = manager.metrics.snapshot()
-    assert snapshot["counters"]["agentcommit.tx.committed"] == 1.0
+    assert snapshot["counters"]["statepact.tx.committed"] == 1.0
     assert any(event.type is EventType.SESSION_COMMITTED for event in manager.event_bus.history)
     record = manager.transactions()[-1]
     assert record.committed

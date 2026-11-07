@@ -1,6 +1,6 @@
 # Operations
 
-This document describes how to operate and maintain an AgentCommit deployment in production.
+This document describes how to operate and maintain an StatePact deployment in production.
 
 ## Deployment checklists
 
@@ -16,17 +16,17 @@ This document describes how to operate and maintain an AgentCommit deployment in
 ### PostgresBackend
 
 * Ensure the database user has `CREATE TABLE` permission on the first connect (the schema is created lazily).
-* Back up the tables periodically (`agentcommit_meta`, `agentcommit_resources`, `agentcommit_values`, `agentcommit_history`, `agentcommit_idempotency`, `agentcommit_locks`, `agentcommit_leases`).
+* Back up the tables periodically (`statepact_meta`, `statepact_resources`, `statepact_values`, `statepact_history`, `statepact_idempotency`, `statepact_locks`, `statepact_leases`).
 * Tune the connection pool (`min_size`/`max_size`) to your worker count and desired throughput. Each commit needs one connection for the advisory lock.
 * Set `lock_timeout` and `serialization_window` in `connect()`, or pass them from your application configuration.
-* Idempotency records are retained for `idempotency_retention_days`. After that window the same idempotency key is treated as a new commit. Prune `agentcommit_idempotency` when it grows large.
+* Idempotency records are retained for `idempotency_retention_days`. After that window the same idempotency key is treated as a new commit. Prune `statepact_idempotency` when it grows large.
 * The commit path uses `pg_advisory_xact_lock` across **all** resources, making it a shared global lock. If you need higher commit throughput, shard resources across databases/schemas.
-* Use the manager's in-memory `TransactionLog` (bounded, default 20,000 records) for recent debugging. `agentcommit_history` is the durable MVCC value history, not a request log.
+* Use the manager's in-memory `TransactionLog` (bounded, default 20,000 records) for recent debugging. `statepact_history` is the durable MVCC value history, not a request log.
 
 ### RedisBackend
 
 * Redis durability depends on your server configuration (AOF, RDB). The bundled `docker-compose.yml` enables AOF; a managed Redis with no persistence can lose recent commits on restart.
-* Choose a `prefix` that isolates AgentCommit from other keys in the Redis database.
+* Choose a `prefix` that isolates StatePact from other keys in the Redis database.
 * History is capped at `history_limit`. Tune per key or per-resource retention needs.
 * Idempotency records expire after `idempotency_ttl_seconds`. Choose a TTL that covers the longest client retry window, then clean up expired keys periodically.
 * Pessimistic lock TTLs are `lock_ttl_seconds`. Keep them comfortably above your longest critical section to avoid starvation.
@@ -40,13 +40,13 @@ The `Metrics` class tracks counters, gauges and histograms. Export them via Prom
 
 | Metric name | Description |
 |---|---|
-| `agentcommit.tx.committed` | number of transactions that reached `SESSION_COMMITTED` |
-| `agentcommit.tx.aborted` | number of transactions that ended as conflicts or clean aborts |
-| `agentcommit.tx.failed` | number of transactions that crashed (unknown outcome) |
-| `agentcommit.commit.latency_ms` | time spent in a successful backend `commit()` call (one attempt) |
-| `agentcommit.tx.latency_ms` | end-to-end latency of one session attempt, including booking and cleanup |
-| `agentcommit.retry.attempts` | number of retries scheduled; does not include the first attempt |
-| `agentcommit.retry.delay_ms` | jittered delay before each retry |
+| `statepact.tx.committed` | number of transactions that reached `SESSION_COMMITTED` |
+| `statepact.tx.aborted` | number of transactions that ended as conflicts or clean aborts |
+| `statepact.tx.failed` | number of transactions that crashed (unknown outcome) |
+| `statepact.commit.latency_ms` | time spent in a successful backend `commit()` call (one attempt) |
+| `statepact.tx.latency_ms` | end-to-end latency of one session attempt, including booking and cleanup |
+| `statepact.retry.attempts` | number of retries scheduled; does not include the first attempt |
+| `statepact.retry.delay_ms` | jittered delay before each retry |
 
 ### Event bus
 
@@ -61,11 +61,11 @@ The `TransactionLog` is a bounded in-memory record of recent transactions (commi
 * **Hot keys** – use `pessimistic` locking with jitter or shard the resource across multiple backends. Do not rely on optimistic retries when the contention rate is above ~5%.
 * **Multiple agents** – keep one manager per agent process; managers do not share state, so agents can run on independent machines.
 * **Multi-region** – configure separate Postgres/Redis clusters per region and route agent requests to the nearest one.
-* **Backup and failover** – AgentCommit does not provide its own replication. Use your database’s built‑in replication, Patroni, or a managed service with automated failover.
+* **Backup and failover** – StatePact does not provide its own replication. Use your database’s built‑in replication, Patroni, or a managed service with automated failover.
 
 ## License and attribution
 
-This library is Apache‑2.0. When you distribute a product that includes AgentCommit, the license text must accompany the source distribution.
+This library is Apache‑2.0. When you distribute a product that includes StatePact, the license text must accompany the source distribution.
 
 ## Security considerations
 
@@ -88,17 +88,17 @@ This library is Apache‑2.0. When you distribute a product that includes AgentC
 
 If a new release breaks a production workflow:
 
-1. Pin the existing version in your package manager (`pip install agentcommit==0.1.0`).
+1. Pin the existing version in your package manager (`pip install statepact==0.1.0`).
 2. Use the `TransactionLog` to replay the last few transactions and verify the effects.
-3. If necessary, revert to a known‑good checkpoint in your framework (LangGraph, CrewAI, …) because AgentCommit does not provide its own checkpointing.
+3. If necessary, revert to a known‑good checkpoint in your framework (LangGraph, CrewAI, …) because StatePact does not provide its own checkpointing.
 
 ## Upgrading
 
 0.1.0 is the first public release. The documented public surface is
 `TransactionManager`, `AgentSession`, `SharedResource`, `RetryPolicy`,
 `LeaseManager`, `IdempotentExecutor` and the exception hierarchy. Imports under
-`agentcommit.core`, `agentcommit.concurrency`, `agentcommit.coordination` and
-`agentcommit.storage` are supported but may change before 1.0.0.
+`statepact.core`, `statepact.concurrency`, `statepact.coordination` and
+`statepact.storage` are supported but may change before 1.0.0.
 
 The `otel` extra is optional and does not affect core functionality. The default
 idempotency fingerprint is **value-insensitive**; confirm that this replay
@@ -106,9 +106,9 @@ semantics is safe for your operation before relying on it.
 
 Pin an exact version in production. Breaking changes are possible before 1.0.0
 and will be listed in the
-[changelog](https://github.com/mithun-27/AgentCommit/blob/main/CHANGELOG.md).
+[changelog](https://github.com/mithun-27/StatePact/blob/main/CHANGELOG.md).
 
 ## Contributing
 
-See [CONTRIBUTING.md](https://github.com/mithun-27/AgentCommit/blob/main/CONTRIBUTING.md)
+See [CONTRIBUTING.md](https://github.com/mithun-27/StatePact/blob/main/CONTRIBUTING.md)
 for code-style guidelines, testing checklist and how to propose changes.

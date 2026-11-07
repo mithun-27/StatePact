@@ -13,7 +13,7 @@ from __future__ import annotations
 
 import asyncio
 
-from agentcommit import TransactionManager
+from statepact import TransactionManager
 
 
 async def main() -> None:

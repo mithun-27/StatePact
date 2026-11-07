@@ -114,7 +114,7 @@ conflict detection entirely. Never use them for an agent's read-modify-write.
 
 ## Errors
 
-All errors derive from `AgentCommitError` and expose `retryable`, `details` and,
+All errors derive from `StatePactError` and expose `retryable`, `details` and,
 for conflicts, `conflict_class`, `resource` and `key`. See
 [Isolation](isolation.md#conflict-classes) and the
 [API reference](api.md#exceptions-hierarchy).

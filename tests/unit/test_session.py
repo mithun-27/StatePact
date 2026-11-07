@@ -2,15 +2,15 @@ from __future__ import annotations
 
 import pytest
 
-from agentcommit import (
+from statepact import (
     AgentSession,
     KeyNotFoundError,
     SharedResource,
     TransactionManager,
     TransactionStateError,
 )
-from agentcommit.core.exceptions import ValidationError
-from agentcommit.core.serde import normalize_value
+from statepact.core.exceptions import ValidationError
+from statepact.core.serde import normalize_value
 
 
 async def test_basic_read_write_commit(manager: TransactionManager) -> None:
@@ -25,7 +25,7 @@ async def test_basic_read_write_commit(manager: TransactionManager) -> None:
 
 
 async def test_default_manager_is_used_when_omitted() -> None:
-    from agentcommit import reset_default_manager
+    from statepact import reset_default_manager
 
     reset_default_manager()
     inventory = SharedResource("auto-inventory", {"sku": 2})
@@ -113,7 +113,7 @@ async def test_ambiguous_resource_is_reported(manager: TransactionManager) -> No
     left = manager.resource("left", {"k": 1})
     right = manager.resource("right", {"k": 2})
     async with manager.session(agent_id="a", resources=[left, right]) as session:
-        from agentcommit import AmbiguousResourceError
+        from statepact import AmbiguousResourceError
 
         with pytest.raises(AmbiguousResourceError):
             await session.read("k")

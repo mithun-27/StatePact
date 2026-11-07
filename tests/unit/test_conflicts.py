@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from agentcommit import (
+from statepact import (
     ConflictError,
     ReadWriteConflict,
     TransactionManager,
@@ -52,7 +52,7 @@ async def test_disjoint_keys_do_not_conflict(manager: TransactionManager) -> Non
 
 
 async def test_no_control_mode_loses_updates(manager: TransactionManager) -> None:
-    """The baseline demonstrates the bug AgentCommit exists to prevent."""
+    """The baseline demonstrates the bug StatePact exists to prevent."""
 
     resource = manager.resource("r", {"k": 1})
     s1 = manager.session(agent_id="a1", resources=[resource], isolation="none")

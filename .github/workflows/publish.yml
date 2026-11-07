@@ -54,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/agentcommit
+      url: https://test.pypi.org/p/statepact
     permissions:
       id-token: write
     steps:
@@ -78,7 +78,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: pypi
-      url: https://pypi.org/p/agentcommit
+      url: https://pypi.org/p/statepact
     permissions:
       id-token: write
     steps:

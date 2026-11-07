@@ -5,13 +5,13 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-from agentcommit import (
+from statepact import (
     LeaseLostError,
     LeaseManager,
     LeaseNotAvailableError,
     TransactionManager,
 )
-from agentcommit.coordination.fencing import FenceGuard
+from statepact.coordination.fencing import FenceGuard
 
 
 async def test_lease_acquire_renew_release(manager: TransactionManager) -> None:
@@ -97,7 +97,7 @@ async def test_fence_guard_rejects_regression() -> None:
 
 
 def test_lease_expiry_helper() -> None:
-    from agentcommit.core.interfaces import Lease
+    from statepact.core.interfaces import Lease
 
     now = datetime.now(UTC)
     lease = Lease("r", "owner", 1, now + timedelta(seconds=5), 5.0)

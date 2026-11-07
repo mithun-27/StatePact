@@ -1,6 +1,6 @@
 # API Reference
 
-This document lists the public, stable API of AgentCommit 0.1.0. The surface is intentionally small so you can build multiple agents on a single manager.
+This document lists the public, stable API of StatePact 0.1.0. The surface is intentionally small so you can build multiple agents on a single manager.
 
 ## Top‑level exports
 
@@ -9,7 +9,7 @@ This document lists the public, stable API of AgentCommit 0.1.0. The surface is 
 The composition root. Owns a backend and provides session/retry helpers.
 
 ```python
-from agentcommit import TransactionManager
+from statepact import TransactionManager
 
 manager = TransactionManager()  # defaults to MemoryBackend
 ```
@@ -97,7 +97,7 @@ helpers take no part in transaction validation.
 Configures retry delays and eligible exception types.
 
 ```python
-from agentcommit import RetryPolicy
+from statepact import RetryPolicy
 
 policy = RetryPolicy(
     max_attempts=5,
@@ -145,7 +145,7 @@ lease = await manager.lease("job-42", owner="worker-a", ttl_seconds=30)
 Helper for long‑running work with optional auto‑renewal.
 
 ```python
-from agentcommit import LeaseManager
+from statepact import LeaseManager
 
 leases = LeaseManager(manager.backend, ttl_seconds=30)
 async with leases.hold("job-42", "worker-a", auto_renew=True) as lease:
@@ -166,7 +166,7 @@ async with leases.hold("job-42", "worker-a", auto_renew=True) as lease:
 Effect journal for at‑most‑once completion of external API calls.
 
 ```python
-from agentcommit import IdempotentExecutor, MemoryEffectStore
+from statepact import IdempotentExecutor, MemoryEffectStore
 
 effects = IdempotentExecutor(MemoryEffectStore())
 charge = await effects.run("charge:invoice-42", lambda: payment_api.charge(amount=30))
@@ -191,7 +191,7 @@ connectivity failures. The built-in backends return ``False`` from
 
 ## Exceptions hierarchy
 
-All exceptions inherit from ``AgentCommitError``. ``ConflictError`` and
+All exceptions inherit from ``StatePactError``. ``ConflictError`` and
 ``RetryExhaustedError`` inherit from ``TransactionAbortedError``.
 
 | Exception | ``retryable`` | When raised |
@@ -219,29 +219,29 @@ Each conflict carries ``resource``, ``key``, ``expected_version`` and ``actual_v
 
 ## Integration adapters
 
-The adapters live in ``agentcommit.integrations`` and do not import the framework at module load.
+The adapters live in ``statepact.integrations`` and do not import the framework at module load.
 
-* ``agentcommit.integrations.base`` – generic helpers (``run_transaction``, ``read_modify_write``, ``transactional``, ``run_sync``).
-* ``agentcommit.integrations.langgraph`` – ``LangGraphCoordinator.node`` and ``.update``.
-* ``agentcommit.integrations.crewai`` – ``transaction_tool`` and ``TransactionTool``.
-* ``agentcommit.integrations.autogen`` – ``AutoGenTransactionMiddleware.transactional``.
+* ``statepact.integrations.base`` – generic helpers (``run_transaction``, ``read_modify_write``, ``transactional``, ``run_sync``).
+* ``statepact.integrations.langgraph`` – ``LangGraphCoordinator.node`` and ``.update``.
+* ``statepact.integrations.crewai`` – ``transaction_tool`` and ``TransactionTool``.
+* ``statepact.integrations.autogen`` – ``AutoGenTransactionMiddleware.transactional``.
 
 ## Observability components
 
-All components are exported from ``agentcommit.observability``.
+All components are exported from ``statepact.observability``.
 
 * ``Event``, ``EventBus``, ``EventType`` – structured lifecycle events.
 * ``TransactionLog``, ``TransactionRecord``, ``TransactionStatus`` – bounded in‑memory transaction snapshot.
 * ``Metrics`` – counters, gauges and latency histograms.
 * ``summarize_latencies`` – utility for percentile calculations.
 
-Optional OpenTelemetry bridge: ``agentcommit.observability.otel``.
+Optional OpenTelemetry bridge: ``statepact.observability.otel``.
 
 ## Backends
 
-* ``agentcommit.storage.memory.MemoryBackend`` – in‑process, deterministic, test‑reference.
-* ``agentcommit.storage.postgres.PostgresBackend`` – requires ``agentcommit[postgres]``.
-* ``agentcommit.storage.redis.RedisBackend`` – requires ``agentcommit[redis]``.
+* ``statepact.storage.memory.MemoryBackend`` – in‑process, deterministic, test‑reference.
+* ``statepact.storage.postgres.PostgresBackend`` – requires ``statepact[postgres]``.
+* ``statepact.storage.redis.RedisBackend`` – requires ``statepact[redis]``.
 
 ## Configuration
 
@@ -250,8 +250,8 @@ Optional OpenTelemetry bridge: ``agentcommit.observability.otel``.
 For PostgreSQL and Redis, use the convenience factory methods:
 
 ```python
-from agentcommit.storage.postgres import PostgresBackend
-from agentcommit.storage.redis import RedisBackend
+from statepact.storage.postgres import PostgresBackend
+from statepact.storage.redis import RedisBackend
 
 backend = await PostgresBackend.connect(dsn)  # schema is created automatically
 manager = TransactionManager(backend)
@@ -261,8 +261,8 @@ manager = TransactionManager(backend)
 
 ## Testing utilities
 
-* ``agentcommit.testing.run_concurrently`` – runs multiple agents in parallel against a manager.
-* ``agentcommit.storage.memory.MemoryBackend.fault_injector`` – injects failures for tests.
+* ``statepact.testing.run_concurrently`` – runs multiple agents in parallel against a manager.
+* ``statepact.storage.memory.MemoryBackend.fault_injector`` – injects failures for tests.
 
 ## Footnotes
 

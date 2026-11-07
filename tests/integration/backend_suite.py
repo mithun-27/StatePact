@@ -13,14 +13,14 @@ from typing import Any
 
 import pytest
 
-from agentcommit import (
+from statepact import (
     ConflictError,
     LeaseLostError,
     LockTimeoutError,
     RetryPolicy,
     TransactionManager,
 )
-from agentcommit.core.interfaces import StorageBackend
+from statepact.core.interfaces import StorageBackend
 
 
 def _name(prefix: str) -> str:

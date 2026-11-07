@@ -33,7 +33,7 @@ inside the same session is wrong: the transaction is already aborted.
 ## RetryPolicy
 
 ```python
-from agentcommit import RetryPolicy
+from statepact import RetryPolicy
 
 policy = RetryPolicy(
     max_attempts=5,
@@ -70,7 +70,7 @@ production hot keys.
 The policy retries an error only if **both** are true:
 
 1. the error is an instance of one of `retry_on`;
-2. for `AgentCommitError`, `error.retryable` is `True`.
+2. for `StatePactError`, `error.retryable` is `True`.
 
 | Error | Retryable | Notes |
 |---|---|---|
@@ -98,8 +98,8 @@ policy = RetryPolicy(
 )
 ```
 
-`retry_on` can select non-AgentCommit exception types, but it cannot override
-`retryable=False` on an AgentCommit error. A `StorageError` stays non-retryable
+`retry_on` can select non-StatePact exception types, but it cannot override
+`retryable=False` on an StatePact error. A `StorageError` stays non-retryable
 even if you list it, because the commit outcome may be unknown. A plain
 `TransientToolError` is retried only because the application asserts it is safe.
 
@@ -145,14 +145,14 @@ use `replan`.
 
 A conflict is unambiguous: the transaction did not commit. A transport failure
 during `commit()` is ambiguous: the backend may have applied the writes before
-the reply was lost. AgentCommit logs such an attempt as `FAILED` and does not
+the reply was lost. StatePact logs such an attempt as `FAILED` and does not
 retry it by default, because `StorageError` is not retryable.
 
 To make a manual resubmission safe, pass an idempotency key and replay the same
 operation yourself:
 
 ```python
-from agentcommit import StorageError
+from statepact import StorageError
 
 async def charge_with_replay() -> None:
     try:

@@ -2,11 +2,11 @@
 
 Start the bundled services with ``docker compose up -d postgres`` and export::
 
-    AGENTCOMMIT_DATABASE_URL=postgresql://agentcommit:agentcommit@localhost:5432/agentcommit
+    STATEPACT_DATABASE_URL=postgresql://statepact:statepact@localhost:5432/statepact
 
 Run with::
 
-    pip install "agentcommit[postgres]"
+    pip install "statepact[postgres]"
     python examples/postgres_counter.py
 """
 
@@ -16,14 +16,14 @@ import asyncio
 import os
 import uuid
 
-from agentcommit import RetryPolicy, TransactionManager
-from agentcommit.storage.postgres import PostgresBackend
+from statepact import RetryPolicy, TransactionManager
+from statepact.storage.postgres import PostgresBackend
 
 
 async def main() -> None:
     dsn = os.environ.get(
-        "AGENTCOMMIT_DATABASE_URL",
-        "postgresql://agentcommit:agentcommit@localhost:5432/agentcommit",
+        "STATEPACT_DATABASE_URL",
+        "postgresql://statepact:statepact@localhost:5432/statepact",
     )
     backend = await PostgresBackend.connect(dsn)
     manager = TransactionManager(backend)

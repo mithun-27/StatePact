@@ -4,11 +4,11 @@ import asyncio
 
 import pytest
 
-from agentcommit import RetryPolicy, TransactionManager
-from agentcommit.integrations.autogen import AutoGenTransactionMiddleware
-from agentcommit.integrations.base import read_modify_write, run_sync, transactional
-from agentcommit.integrations.crewai import transaction_tool
-from agentcommit.integrations.langgraph import LangGraphCoordinator
+from statepact import RetryPolicy, TransactionManager
+from statepact.integrations.autogen import AutoGenTransactionMiddleware
+from statepact.integrations.base import read_modify_write, run_sync, transactional
+from statepact.integrations.crewai import transaction_tool
+from statepact.integrations.langgraph import LangGraphCoordinator
 
 
 async def test_read_modify_write_retries_without_losing_updates(

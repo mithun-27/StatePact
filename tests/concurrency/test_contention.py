@@ -4,13 +4,13 @@ import asyncio
 
 import pytest
 
-from agentcommit import (
+from statepact import (
     ConflictError,
     DeadlockError,
     LockTimeoutError,
     TransactionManager,
 )
-from agentcommit.testing import run_concurrently
+from statepact.testing import run_concurrently
 
 
 async def _reserve(manager: TransactionManager, inventory, agent: str) -> bool:
@@ -28,7 +28,7 @@ async def _reserve(manager: TransactionManager, inventory, agent: str) -> bool:
 
 
 async def _reserve_with_retry(manager: TransactionManager, inventory, agent: str) -> bool:
-    from agentcommit import RetryPolicy
+    from statepact import RetryPolicy
 
     async def work(session) -> bool:
         stock = await session.read("sku")
@@ -94,7 +94,7 @@ async def test_concurrent_disjoint_writes_all_commit(manager: TransactionManager
 
 
 async def test_two_phase_locking_serialises_writers(manager: TransactionManager) -> None:
-    from agentcommit import RetryPolicy
+    from statepact import RetryPolicy
 
     resource = manager.resource("r", {"k": 0})
 

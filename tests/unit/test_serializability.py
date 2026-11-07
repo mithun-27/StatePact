@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
 
-from agentcommit import ConflictError, TransactionManager
-from agentcommit.concurrency.serializability import (
+from statepact import ConflictError, TransactionManager
+from statepact.concurrency.serializability import (
     SerializationGraphAudit,
     TransactionFootprint,
 )
-from agentcommit.core.interfaces import ReadRecord, WriteRecord
+from statepact.core.interfaces import ReadRecord, WriteRecord
 
 
 def footprint(
@@ -81,7 +81,7 @@ def test_audit_accepts_non_overlapping_transaction() -> None:
 
 
 async def test_serializable_mode_commits_consistent_workload(manager: TransactionManager) -> None:
-    from agentcommit import RetryPolicy
+    from statepact import RetryPolicy
 
     resource = manager.resource("r", {"k": 0})
 
@@ -98,7 +98,7 @@ async def test_serializable_mode_commits_consistent_workload(manager: Transactio
             retry_policy=RetryPolicy(max_attempts=50, base_delay=0.0, jitter=0.0),
         )
 
-    from agentcommit.testing import run_concurrently
+    from statepact.testing import run_concurrently
 
     await run_concurrently(10, increment)
     assert await resource.read("k") == 10

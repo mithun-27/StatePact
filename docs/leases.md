@@ -6,7 +6,7 @@ duplicate worker must not run at the same time.
 
 A lease alone is not enough. An owner can pause (GC, VM migration, network
 partition), lose the lease, and wake up later believing it still owns the job.
-AgentCommit pairs every lease with a **fencing token** that the backend checks on
+StatePact pairs every lease with a **fencing token** that the backend checks on
 every write.
 
 ## The model
@@ -54,7 +54,7 @@ worker-a: wakes up, writes status = "running"   # stale write
 ```
 
 If the backend only checks "does `worker-a` believe it has a lease?", the stale
-write lands. AgentCommit records token `2` as the high-water mark and rejects
+write lands. StatePact records token `2` as the high-water mark and rejects
 `worker-a`'s token `1`. Storage is the arbiter, not the client.
 
 A consequence worth stating plainly: **expiry alone does not block writes**. A
@@ -68,7 +68,7 @@ job, and is fenced the moment a takeover happens.
 Use a heartbeat well inside the TTL (one third is a good default):
 
 ```python
-from agentcommit import LeaseManager
+from statepact import LeaseManager
 
 leases = LeaseManager(manager.backend, ttl_seconds=30)
 
@@ -119,7 +119,7 @@ still the authority.
 
 * **memory** — tokens and leases live in the process; same-owner re-acquire
   extends, release deletes the lease but not the token counter.
-* **PostgreSQL** — `agentcommit_leases` stores the current owner, token and
+* **PostgreSQL** — `statepact_leases` stores the current owner, token and
   expiry; acquisition takes an advisory transaction lock plus a row lock.
   Release sets the expiry to the epoch; the token remains as the high-water mark.
 * **Redis** — `{prefix}:lease:{resource}` stores the lease and

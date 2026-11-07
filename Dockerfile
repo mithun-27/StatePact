@@ -16,6 +16,6 @@ COPY benchmarks ./benchmarks
 EXPOSE 7860
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD python -c "import agentcommit; print(agentcommit.__version__)"
+  CMD python -c "import statepact; print(statepact.__version__)"
 
 CMD ["python", "demo/app.py"]

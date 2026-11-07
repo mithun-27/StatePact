@@ -5,9 +5,9 @@ from datetime import UTC, datetime
 
 import pytest
 
-from agentcommit import ConfigurationError, TransactionManager
-from agentcommit.observability.events import Event, EventBus, EventType
-from agentcommit.observability.otel import OTelBridge, attach_otel
+from statepact import ConfigurationError, TransactionManager
+from statepact.observability.events import Event, EventBus, EventType
+from statepact.observability.otel import OTelBridge, attach_otel
 
 
 @dataclass
@@ -71,13 +71,13 @@ def test_bridge_creates_and_ends_a_transaction_span() -> None:
 
     assert len(tracer.spans) == 1
     span = tracer.spans[0]
-    assert span.name == "agentcommit.transaction"
-    assert span.attributes["agentcommit.agent_id"] == "agent-1"
-    assert span.attributes["agentcommit.isolation"] == "optimistic"
-    assert span.attributes["agentcommit.outcome"] == "committed"
-    assert span.attributes["agentcommit.commit_version"] == 7
+    assert span.name == "statepact.transaction"
+    assert span.attributes["statepact.agent_id"] == "agent-1"
+    assert span.attributes["statepact.isolation"] == "optimistic"
+    assert span.attributes["statepact.outcome"] == "committed"
+    assert span.attributes["statepact.commit_version"] == 7
     assert span.events[0][0] == "conflict"
-    assert span.events[0][1]["agentcommit.conflict_class"] == "write_write"
+    assert span.events[0][1]["statepact.conflict_class"] == "write_write"
     assert span.ended
 
 
@@ -88,7 +88,7 @@ def test_bridge_marks_aborted_attempts() -> None:
     bridge(_event(EventType.SESSION_ABORTED, message="conflict", data={"duration_ms": 3.0}))
 
     span = tracer.spans[0]
-    assert span.attributes["agentcommit.outcome"] == "conflict"
+    assert span.attributes["statepact.outcome"] == "conflict"
     assert span.ended
 
 
@@ -107,7 +107,7 @@ def test_bridge_bounds_leaked_spans() -> None:
 
     assert len(tracer.spans) == 3
     assert tracer.spans[0].ended
-    assert tracer.spans[0].attributes["agentcommit.outcome"] == "unknown"
+    assert tracer.spans[0].attributes["statepact.outcome"] == "unknown"
     assert not tracer.spans[1].ended
 
     bridge.close()

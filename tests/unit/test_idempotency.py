@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from agentcommit import (
+from statepact import (
     EffectFailedError,
     EffectInProgressError,
     EffectState,
@@ -143,7 +143,7 @@ async def test_executing_effect_is_not_started_twice() -> None:
     executor = IdempotentExecutor(store)
     from datetime import UTC, datetime
 
-    from agentcommit.core.idempotency import EffectRecord
+    from statepact.core.idempotency import EffectRecord
 
     now = datetime.now(UTC)
     await store.create(EffectRecord(key="busy", state=EffectState.EXECUTING, updated_at=now))

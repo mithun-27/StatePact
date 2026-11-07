@@ -17,8 +17,8 @@ concurrency:
 env:
   PYTHON_VERSION: "3.12"
   UV_VERSION: "0.8.22"
-  AGENTCOMMIT_TEST_POSTGRES_URL: "postgresql://agentcommit:agentcommit@localhost:5432/agentcommit"
-  AGENTCOMMIT_TEST_REDIS_URL: "redis://localhost:6379/0"
+  STATEPACT_TEST_POSTGRES_URL: "postgresql://statepact:statepact@localhost:5432/statepact"
+  STATEPACT_TEST_REDIS_URL: "redis://localhost:6379/0"
 
 jobs:
   lint:
@@ -55,13 +55,13 @@ jobs:
       postgres:
         image: postgres:16-alpine
         env:
-          POSTGRES_USER: agentcommit
-          POSTGRES_PASSWORD: agentcommit
-          POSTGRES_DB: agentcommit
+          POSTGRES_USER: statepact
+          POSTGRES_PASSWORD: statepact
+          POSTGRES_DB: statepact
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U agentcommit -d agentcommit"
+          --health-cmd "pg_isready -U statepact -d statepact"
           --health-interval 5s
           --health-timeout 5s
           --health-retries 20
@@ -90,7 +90,7 @@ jobs:
         run: uv sync --extra dev --extra postgres --extra redis --extra otel
 
       - name: Run tests
-        run: uv run pytest -q --cov=agentcommit --cov-report=term-missing --cov-report=xml
+        run: uv run pytest -q --cov=statepact --cov-report=term-missing --cov-report=xml
 
       - name: Upload coverage report
         if: always()

@@ -3,7 +3,7 @@ requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
 
 [project]
-name = "agentcommit"
+name = "statepact"
 dynamic = ["version"]
 description = "Transaction management for autonomous AI agents: optimistic concurrency, MVCC, 2PL, leases and fencing for shared agent state."
 readme = "README.md"
@@ -68,20 +68,20 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/mithun-27/AgentCommit"
-Documentation = "https://github.com/mithun-27/AgentCommit#documentation"
-Repository = "https://github.com/mithun-27/AgentCommit"
-Issues = "https://github.com/mithun-27/AgentCommit/issues"
-Changelog = "https://github.com/mithun-27/AgentCommit/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/mithun-27/StatePact"
+Documentation = "https://github.com/mithun-27/StatePact#documentation"
+Repository = "https://github.com/mithun-27/StatePact"
+Issues = "https://github.com/mithun-27/StatePact/issues"
+Changelog = "https://github.com/mithun-27/StatePact/blob/main/CHANGELOG.md"
 
 [project.scripts]
-agentcommit = "agentcommit.cli:main"
+statepact = "statepact.cli:main"
 
 [tool.hatch.version]
-path = "src/agentcommit/__about__.py"
+path = "src/statepact/__about__.py"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/agentcommit"]
+packages = ["src/statepact"]
 
 [tool.hatch.build.targets.sdist]
 include = [
@@ -105,17 +105,17 @@ testpaths = ["tests"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 markers = [
-  "postgres: requires a live PostgreSQL instance (AGENTCOMMIT_TEST_POSTGRES_URL)",
-  "redis: requires a live Redis instance (AGENTCOMMIT_TEST_REDIS_URL)",
+  "postgres: requires a live PostgreSQL instance (STATEPACT_TEST_POSTGRES_URL)",
+  "redis: requires a live Redis instance (STATEPACT_TEST_REDIS_URL)",
   "stress: long-running stress tests",
   "benchmark: micro benchmarks (pytest-benchmark)",
 ]
 filterwarnings = ["error", "ignore::DeprecationWarning:gradio.*"]
 
 [tool.coverage.run]
-source = ["agentcommit"]
+source = ["statepact"]
 branch = true
-omit = ["src/agentcommit/integrations/*"]
+omit = ["src/statepact/integrations/*"]
 
 [tool.coverage.report]
 exclude_lines = ["pragma: no cover", "if TYPE_CHECKING:", "raise NotImplementedError"]
@@ -130,7 +130,7 @@ select = ["E", "F", "W", "I", "N", "UP", "B", "A", "C4", "SIM", "RET", "PTH", "R
 ignore = ["E501", "B008"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["agentcommit"]
+known-first-party = ["statepact"]
 
 [tool.mypy]
 python_version = "3.12"
@@ -142,9 +142,9 @@ plugins = []
 exclude = ["benchmarks", "demo", "docs", "examples"]
 
 [[tool.mypy.overrides]]
-module = ["agentcommit.integrations.*"]
+module = ["statepact.integrations.*"]
 disallow_untyped_calls = false
 
 [[tool.mypy.overrides]]
-module = ["agentcommit.observability.otel"]
+module = ["statepact.observability.otel"]
 ignore_missing_imports = true

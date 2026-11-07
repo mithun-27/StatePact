@@ -4,9 +4,9 @@ import asyncio
 
 import pytest
 
-from agentcommit import DeadlockError, LockTimeoutError
-from agentcommit.concurrency.locking import LockManager
-from agentcommit.coordination.wait_for_graph import WaitForGraph
+from statepact import DeadlockError, LockTimeoutError
+from statepact.concurrency.locking import LockManager
+from statepact.coordination.wait_for_graph import WaitForGraph
 
 
 async def test_shared_locks_coexist() -> None:

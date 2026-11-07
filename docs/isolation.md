@@ -1,6 +1,6 @@
 # Isolation and anomalies
 
-AgentCommit gives each transaction a consistent snapshot and validates its
+StatePact gives each transaction a consistent snapshot and validates its
 conflicts at commit. The isolation mode decides **what is read** and **what is
 validated**. No mode can protect a key that a transaction never declared.
 

@@ -11,11 +11,11 @@ from __future__ import annotations
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from agentcommit.concurrency.mvcc import VersionEntry, trim_history, visible_entry
-from agentcommit.coordination.fencing import FenceGuard
-from agentcommit.coordination.retry import RetryPolicy
-from agentcommit.core.exceptions import LeaseLostError
-from agentcommit.core.serde import stable_hash
+from statepact.concurrency.mvcc import VersionEntry, trim_history, visible_entry
+from statepact.coordination.fencing import FenceGuard
+from statepact.coordination.retry import RetryPolicy
+from statepact.core.exceptions import LeaseLostError
+from statepact.core.serde import stable_hash
 
 
 @settings(max_examples=200, deadline=None)

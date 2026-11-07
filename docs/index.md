@@ -1,8 +1,8 @@
-# AgentCommit
+# StatePact
 
 Transaction management for autonomous AI agents.
 
-AgentCommit gives a multi-agent system one thing most frameworks leave out: a
+StatePact gives a multi-agent system one thing most frameworks leave out: a
 correct boundary around **shared mutable state**. Agents read a value, reason
 about it, and write it back. Without conflict detection, concurrent agents lose
 updates, oversell inventory, double-apply side effects and violate invariants.
@@ -21,7 +21,7 @@ set and write bases against the latest committed versions and applies all writes
 atomically, or rejects the transaction with a classified conflict. A retry
 re-runs the whole body on a fresh snapshot.
 
-Try the [live concurrency playground](https://huggingface.co/spaces/Mithun-2714/AgentCommit-Concurrency-Playground)
+Try the [live concurrency playground](https://huggingface.co/spaces/Mithun-2714/StatePact-Concurrency-Playground)
 to see lost updates, overselling and write skew under each isolation mode. It is a
 browser simulation of the protocol; the Python engine is in this repository.
 
@@ -41,8 +41,8 @@ browser simulation of the protocol; the Python engine is in this repository.
 ## Install
 
 ```bash
-git clone https://github.com/mithun-27/AgentCommit
-cd AgentCommit
+git clone https://github.com/mithun-27/StatePact
+cd StatePact
 python -m pip install ".[postgres,redis]"
 ```
 
@@ -53,7 +53,7 @@ optional extras. A 0.1.0 PyPI release is pending, so install from source for now
 
 ```python
 import asyncio
-from agentcommit import RetryPolicy, TransactionManager
+from statepact import RetryPolicy, TransactionManager
 
 async def main() -> None:
     manager = TransactionManager()                       # in-memory backend

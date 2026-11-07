@@ -1,11 +1,11 @@
-site_name: AgentCommit
+site_name: StatePact
 
 site_description: Transaction management for autonomous AI agents.
 
-site_url: https://mithun-27.github.io/AgentCommit/
+site_url: https://mithun-27.github.io/StatePact/
 
-repo_name: mithun-27/AgentCommit
-repo_url: https://github.com/mithun-27/AgentCommit
+repo_name: mithun-27/StatePact
+repo_url: https://github.com/mithun-27/StatePact
 
 edit_uri: edit/main/docs/
 

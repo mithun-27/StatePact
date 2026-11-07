@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import asyncio
 
-from agentcommit import RetryPolicy, TransactionManager
+from statepact import RetryPolicy, TransactionManager
 
 
 async def main() -> None:

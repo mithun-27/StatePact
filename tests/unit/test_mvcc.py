@@ -1,14 +1,14 @@
 from __future__ import annotations
 
-from agentcommit import TransactionManager
-from agentcommit.concurrency.mvcc import (
+from statepact import TransactionManager
+from statepact.concurrency.mvcc import (
     VersionEntry,
     latest_entry,
     snapshot_values,
     trim_history,
     visible_entry,
 )
-from agentcommit.storage.memory import MemoryBackend
+from statepact.storage.memory import MemoryBackend
 
 
 def test_visible_entry_selects_latest_at_or_before_snapshot() -> None:
@@ -56,7 +56,7 @@ async def test_version_history_and_gc() -> None:
     for value in (1, 2, 3):
         snapshot = await backend.snapshot("r")
         # Capture a session-shaped transaction.
-        from agentcommit.core.transaction import Transaction, new_transaction_id, utcnow
+        from statepact.core.transaction import Transaction, new_transaction_id, utcnow
 
         tx = Transaction(
             id=new_transaction_id(),
@@ -81,7 +81,7 @@ async def test_version_history_and_gc() -> None:
 async def test_retain_versions_prevents_full_trim() -> None:
     backend = MemoryBackend(retain_versions=10)
     await backend.ensure_resource("r", {"k": 0})
-    from agentcommit.core.transaction import Transaction, new_transaction_id, utcnow
+    from statepact.core.transaction import Transaction, new_transaction_id, utcnow
 
     for value in range(1, 4):
         snapshot = await backend.snapshot("r")

@@ -5,7 +5,7 @@ from typing import Any
 
 import pytest
 
-from agentcommit import AgentSession, SharedResource, TransactionManager
+from statepact import AgentSession, SharedResource, TransactionManager
 
 
 @pytest.fixture

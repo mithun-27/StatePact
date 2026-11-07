@@ -1,11 +1,21 @@
 # Changelog
 
-All notable changes to AgentCommit will be documented in this file.
+All notable changes to StatePact will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### Changed
+
+* Renamed the project from **AgentCommit** to **StatePact** before the first
+  PyPI release, because `agentcommit` normalizes to the already-published
+  `agent-commit` distribution. The distribution is now `statepact`, the import
+  package is `statepact`, the CLI is `statepact`, and environment variables use
+  the `STATEPACT_` prefix. The GitHub repository is
+  [mithun-27/StatePact](https://github.com/mithun-27/StatePact). There was no
+  prior PyPI release under the old name.
 
 ### Added
 
@@ -35,13 +45,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Wait‑for graph deadlock detection and `CAS` operations
 * Concurrency utilities (`run_concurrently`, `ConcurrencyLimiter`)
 * Observability stack (`EventBus`, `TransactionLog`, `Metrics`)
-* Optional OpenTelemetry bridge (`agentcommit.observability.otel`)
+* Optional OpenTelemetry bridge (`statepact.observability.otel`)
 * Framework adapters: LangGraph, CrewAI, AutoGen
 * Gradio playground (`demo/app.py`)
 * Static browser playground on Hugging Face Spaces (simulation of the isolation rules)
 * Benchmark runner with correctness invariants
 * Comprehensive test suite (121 unit/property/concurrency/failure-injection, 14 integration)
-* CLI (`agentcommit`)
+* CLI (`statepact`)
 
 ### Changed
 
@@ -52,14 +62,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Use `StrEnum` for enums and PEP 695 generics where applicable.
 * Failure‑injection/unknown commit exceptions are logged as `FAILED`; conflicts are logged by the backend.
 * `PostgresBackend` uses `asyncpg` directly with advisory transaction lock; global `pg_advisory_xact_lock` around commit validation/apply.
-* `RedisBackend` uses Lua for atomic commit validation/apply with prefix `agentcommit`.
+* `RedisBackend` uses Lua for atomic commit validation/apply with prefix `statepact`.
 * Integrations are thin adapters with no framework imports at module load.
 * Benchmark runner namespaces all resources with `RUN_ID`; includes `baseline_none` and `hot_key_backoff`.
 
 ### Fixed
 
 * README states PyPI 0.1.0 publication is pending (install from source) until Trusted Publishing succeeds.
-* README/docs must not claim an `agentcommit.observability.otel` bridge exists unless it is implemented.
+* README/docs must not claim an `statepact.observability.otel` bridge exists unless it is implemented.
 * `LeaseLostError` table in README incorrectly marked `retryable` as `yes*`.
 * Fixed docs inaccuracies:
   * `docs/backends.md` mentioned "configured schema" for `clear()`.
@@ -70,8 +80,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
-* `agentcommit.storage.memory.MemoryBackend.fault_injector` – legacy test utility; use property tests instead.
-* `agentcommit.observability.events.EventHook` – will be removed in favor of `Callable[[Event], Any]` in 1.0.0.
+* `statepact.storage.memory.MemoryBackend.fault_injector` – legacy test utility; use property tests instead.
+* `statepact.observability.events.EventHook` – will be removed in favor of `Callable[[Event], Any]` in 1.0.0.
 
 ### Removed
 
