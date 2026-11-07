@@ -14,7 +14,7 @@ Raw artifact for the published run:
 * **Environment:** Windows 11 `10.0.26300`, Python 3.12.13, AMD64 12-logical-CPU
   VM. PostgreSQL 16 and Redis 7 in Docker Desktop on the same host. Services
   reached over Docker port forwarding.
-* **Workload:** 40 agents Ã— 10 operations = 400 transactions per scenario. Each
+* **Workload:** 40 agents × 10 operations = 400 transactions per scenario. Each
   operation reads a value, yields with `asyncio.sleep(0)` so concurrent agents
   interleave, then writes the new value.
 * **Scenarios:** independent keys, one hot key, one hot key with jittered
@@ -25,7 +25,7 @@ Raw artifact for the published run:
   retry immediately.
 * **Retry policy (backoff):** `max_attempts=2000`, `base_delay=1 ms`,
   `max_delay=50 ms`, `jitter=0.5`.
-* **Leases:** 10 agents Ã— 10 operations, concurrency 1, to measure the
+* **Leases:** 10 agents × 10 operations, concurrency 1, to measure the
   lease+commit+fence path without a queueing overlay.
 * **Namespacing:** every resource gets a per-run suffix, so a durable backend
   never reads a previous run's state.
@@ -95,14 +95,14 @@ performance claims.
 
 | Check | memory | PostgreSQL | Redis |
 |---|---:|---:|---:|
-| `none`: counter after 400 increments | 10 / 400 âŒ | 24 / 400 âŒ | 10 / 400 âŒ |
-| `optimistic`: counter after 400 increments | 400 / 400 âœ… | 400 / 400 âœ… | 400 / 400 âœ… |
-| `snapshot`: write-skew violations | 20 / 20 âŒ | 20 / 20 âŒ | 20 / 20 âŒ |
-| `serializable`: write-skew violations | 0 / 20 âœ… | 0 / 20 âœ… | 0 / 20 âœ… |
+| `none`: counter after 400 increments | 10 / 400 ❌ | 24 / 400 ❌ | 10 / 400 ❌ |
+| `optimistic`: counter after 400 increments | 400 / 400 ✅ | 400 / 400 ✅ | 400 / 400 ✅ |
+| `snapshot`: write-skew violations | 20 / 20 ❌ | 20 / 20 ❌ | 20 / 20 ❌ |
+| `serializable`: write-skew violations | 0 / 20 ✅ | 0 / 20 ✅ | 0 / 20 ✅ |
 | `serializable`: conflicts rejected | 20 / 20 | 20 / 20 | 20 / 20 |
 | Lease final fence | 100 | 100 | 100 |
 
-`none` loses 376â€“390 of 400 updates on every backend. That is the failure mode
+`none` loses 376–390 of 400 updates on every backend. That is the failure mode
 transactions prevent. `snapshot` commits both doctors going off call in every
 trial; `optimistic` and `serializable` reject one side.
 
