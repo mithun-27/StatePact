@@ -21,6 +21,10 @@ set and write bases against the latest committed versions and applies all writes
 atomically, or rejects the transaction with a classified conflict. A retry
 re-runs the whole body on a fresh snapshot.
 
+Try the [live concurrency playground](https://huggingface.co/spaces/Mithun-2714/AgentCommit-Concurrency-Playground)
+to see lost updates, overselling and write skew under each isolation mode. It is a
+browser simulation of the protocol; the Python engine is in this repository.
+
 ## What you get
 
 | Capability | Where |

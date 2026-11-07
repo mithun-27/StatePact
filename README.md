@@ -6,6 +6,7 @@ lease/fencing tokens for state that multiple agents read and write.
 
 [![CI](https://github.com/mithun-27/AgentCommit/actions/workflows/ci.yml/badge.svg)](https://github.com/mithun-27/AgentCommit/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/)
+[![Playground](https://img.shields.io/badge/playground-live-6d5efc.svg)](https://huggingface.co/spaces/Mithun-2714/AgentCommit-Concurrency-Playground)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/status-alpha-orange.svg)](#status)
 
@@ -42,6 +43,10 @@ concurrent tool calls**. AgentCommit adds the missing concurrency layer:
 
 AgentCommit is framework-independent. LangGraph, CrewAI and AutoGen adapters are
 thin optional wrappers; the same engine works with a custom agent loop.
+
+Try the [live concurrency playground](https://huggingface.co/spaces/Mithun-2714/AgentCommit-Concurrency-Playground).
+It is a browser simulation of the same validation rules (free static hosting),
+not the Python engine; the runnable Python demo is in [`demo/`](demo/).
 
 ## What it is not
 

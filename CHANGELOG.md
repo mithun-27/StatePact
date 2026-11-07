@@ -38,8 +38,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Optional OpenTelemetry bridge (`agentcommit.observability.otel`)
 * Framework adapters: LangGraph, CrewAI, AutoGen
 * Gradio playground (`demo/app.py`)
+* Static browser playground on Hugging Face Spaces (simulation of the isolation rules)
 * Benchmark runner with correctness invariants
-* Comprehensive test suite (108 unit/property, 14 integration)
+* Comprehensive test suite (121 unit/property/concurrency/failure-injection, 14 integration)
 * CLI (`agentcommit`)
 
 ### Changed
