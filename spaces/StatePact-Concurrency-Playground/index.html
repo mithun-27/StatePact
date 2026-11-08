@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>StatePact Concurrency Playground</title>
+    <meta
+      name="description"
+      content="See lost updates, overselling and write skew under five isolation modes. A browser simulation of the StatePact transaction protocol."
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%236d5efc'/%3E%3Cpath d='M11 14v-2a5 5 0 0 1 10 0v2' fill='none' stroke='white' stroke-width='2.5'/%3E%3Crect x='9' y='14' width='14' height='11' rx='2.5' fill='white'/%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <a class="skip" href="#playground">Skip to playground</a>
+
+    <header class="site-header">
+      <div class="wrap header-inner">
+        <a
+          class="brand"
+          href="https://github.com/mithun-27/StatePact"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <svg viewBox="0 0 32 32" aria-hidden="true">
+            <rect width="32" height="32" rx="8" fill="url(#g)" />
+            <path d="M11 14v-2a5 5 0 0 1 10 0v2" fill="none" stroke="#fff" stroke-width="2.4" />
+            <rect x="9" y="14" width="14" height="11" rx="2.4" fill="#fff" />
+            <defs>
+              <linearGradient id="g" x1="0" y1="0" x2="32" y2="32">
+                <stop stop-color="#6d5efc" />
+                <stop offset="1" stop-color="#b44cf0" />
+              </linearGradient>
+            </defs>
+          </svg>
+          <span>StatePact</span>
+        </a>
+        <nav aria-label="Primary">
+          <a href="#playground">Playground</a>
+          <a href="#how">How it works</a>
+          <a href="https://github.com/mithun-27/StatePact" target="_blank" rel="noopener noreferrer"
+            >GitHub</a
+          >
+          <a
+            href="https://github.com/mithun-27/StatePact/tree/main/docs"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Docs</a
+          >
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero wrap">
+        <div class="eyebrow">Transaction management for autonomous agents</div>
+        <h1>Concurrency, made visible.</h1>
+        <p class="lede">
+          Agents read shared state, think, and write it back. Run the same workload under five
+          isolation modes and watch lost updates, overselling and write skew appear — or disappear.
+        </p>
+        <div class="hero-meta">
+          <span class="pill">Python 3.12+</span>
+          <span class="pill">Apache-2.0</span>
+          <span class="pill">PostgreSQL · Redis · Memory</span>
+        </div>
+      </section>
+
+      <section id="playground" class="wrap playground" aria-labelledby="playground-title">
+        <h2 id="playground-title" class="sr-only">Concurrency playground</h2>
+
+        <div class="notice" role="note">
+          <strong>Browser simulation.</strong> This page mirrors the commit-validation rules of
+          StatePact in JavaScript so it can run on a free static Space. It is not the Python
+          engine. The real implementation and benchmark artifacts are in the
+          <a
+            href="https://github.com/mithun-27/StatePact"
+            target="_blank"
+            rel="noopener noreferrer"
+            >repository</a
+          >.
+        </div>
+
+        <form class="controls" id="controls">
+          <div class="field">
+            <label for="scenario">Scenario</label>
+            <select id="scenario" name="scenario">
+              <option value="inventory">Inventory — limited stock</option>
+              <option value="counter">Counter — lost updates</option>
+              <option value="write_skew">Write skew — on-call doctors</option>
+            </select>
+            <p class="hint" id="scenario-hint">
+              Concurrent reservations compete for a fixed number of units.
+            </p>
+          </div>
+
+          <div class="field">
+            <label for="isolation">Isolation mode</label>
+            <select id="isolation" name="isolation">
+              <option value="optimistic" selected>optimistic</option>
+              <option value="snapshot">snapshot</option>
+              <option value="serializable">serializable</option>
+              <option value="pessimistic">pessimistic</option>
+              <option value="none">none (unsafe baseline)</option>
+            </select>
+            <p class="hint" id="isolation-hint">Snapshot reads plus full read/write validation.</p>
+          </div>
+
+          <div class="field">
+            <label for="agents">Agents <output id="agents-value" for="agents">20</output></label>
+            <input id="agents" name="agents" type="range" min="2" max="50" value="20" step="1" />
+            <p class="hint">Concurrent workers.</p>
+          </div>
+
+          <div class="field">
+            <label for="operations"
+              ><span id="operations-label">Operations per agent</span>
+              <output id="operations-value" for="operations">5</output></label
+            >
+            <input id="operations" name="operations" type="range" min="1" max="20" value="5" step="1" />
+            <p class="hint" id="operations-hint">Each operation is a separate transaction.</p>
+          </div>
+
+          <div class="field">
+            <label for="stock">Initial stock <output id="stock-value" for="stock">10</output></label>
+            <input id="stock" name="stock" type="range" min="1" max="100" value="10" step="1" />
+            <p class="hint">Only used by the inventory scenario.</p>
+          </div>
+
+          <div class="field submit-field">
+            <button id="run" type="submit">
+              <span class="button-label">Run experiment</span>
+              <span class="spinner" aria-hidden="true"></span>
+            </button>
+            <p class="hint" id="run-status" role="status" aria-live="polite">Ready.</p>
+          </div>
+        </form>
+
+        <div class="results" aria-live="polite">
+          <div class="result-head">
+            <div>
+              <div class="eyebrow" id="result-eyebrow">Result</div>
+              <h3 id="headline">Waiting to run…</h3>
+            </div>
+            <div id="verdict" class="verdict" data-tone="neutral">—</div>
+          </div>
+
+          <div class="stats" id="stats">
+            <div class="stat">
+              <span class="stat-label">Accepted</span>
+              <span class="stat-value" id="stat-accepted">—</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Expected</span>
+              <span class="stat-value" id="stat-expected">—</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Actual</span>
+              <span class="stat-value" id="stat-actual">—</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Conflicts</span>
+              <span class="stat-value" id="stat-conflicts">—</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Retries</span>
+              <span class="stat-value" id="stat-retries">—</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Failures</span>
+              <span class="stat-value" id="stat-failures">—</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label">Duration</span>
+              <span class="stat-value" id="stat-duration">—</span>
+            </div>
+            <div class="stat">
+              <span class="stat-label" id="stat-extra-label">Oversold</span>
+              <span class="stat-value" id="stat-extra">—</span>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <caption class="sr-only">Measured result for the selected run</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Scenario</th>
+                  <th scope="col">Isolation</th>
+                  <th scope="col">Agents</th>
+                  <th scope="col">Ops</th>
+                  <th scope="col">Accepted</th>
+                  <th scope="col">Expected</th>
+                  <th scope="col">Actual</th>
+                  <th scope="col">Conflicts</th>
+                  <th scope="col">Retries</th>
+                  <th scope="col">Failures</th>
+                  <th scope="col">Seconds</th>
+                  <th scope="col">Violations</th>
+                  <th scope="col">Oversold</th>
+                </tr>
+              </thead>
+              <tbody id="result-row">
+                <tr>
+                  <td colspan="13" class="empty">Run an experiment to see measured results.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="invariant" id="invariant"></p>
+        </div>
+      </section>
+
+      <section id="how" class="wrap how" aria-labelledby="how-title">
+        <h2 id="how-title">What the modes actually do</h2>
+        <p class="section-lede">
+          The engine stages reads and writes, then validates them at commit. The difference is
+          <em>what</em> gets validated.
+        </p>
+
+        <div class="mode-grid">
+          <article class="mode-card">
+            <h3><code>none</code></h3>
+            <p>No validation. Reads and writes race. Use it only as a benchmark baseline.</p>
+            <p class="mode-effect bad">Lost updates and overselling are expected.</p>
+          </article>
+          <article class="mode-card">
+            <h3><code>optimistic</code></h3>
+            <p>Snapshot reads, then validate every read and write base version at commit.</p>
+            <p class="mode-effect good">Default. Serializes the tracked key set and rejects write skew.</p>
+          </article>
+          <article class="mode-card">
+            <h3><code>snapshot</code></h3>
+            <p>MVCC reads with first-committer-wins on the write set only.</p>
+            <p class="mode-effect warn">No lost updates, but write skew remains possible.</p>
+          </article>
+          <article class="mode-card">
+            <h3><code>serializable</code></h3>
+            <p>Optimistic validation plus a serialization-graph audit for cycle diagnostics.</p>
+            <p class="mode-effect good">Highest assurance; conflict detection can be stricter.</p>
+          </article>
+          <article class="mode-card">
+            <h3><code>pessimistic</code></h3>
+            <p>Strict two-phase locking: reads take locks and hold them until commit.</p>
+            <p class="mode-effect good">Predictable under hot keys; waits instead of retrying.</p>
+          </article>
+        </div>
+
+        <div class="how-grid">
+          <article>
+            <h3>Why reads matter</h3>
+            <p>
+              Write skew happens when each transaction writes a different key but reads the other's
+              key to make its decision. Validating only the write set cannot see it. Validating the
+              read set can.
+            </p>
+          </article>
+          <article>
+            <h3>Why retries are safe</h3>
+            <p>
+              A conflict means the transaction did not commit. The whole body re-runs on a fresh
+              snapshot. An unknown failure is never silently retried.
+            </p>
+          </article>
+          <article>
+            <h3>Why this is hard</h3>
+            <p>
+              Framework checkpointers persist messages, not conflict detection across concurrent
+              tool calls. That coordination layer is what StatePact provides.
+            </p>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="wrap footer-inner">
+        <p>
+          <strong>StatePact</strong> — transaction management for autonomous AI agents.
+          Apache-2.0.
+        </p>
+        <p>
+          <a href="https://github.com/mithun-27/StatePact" target="_blank" rel="noopener noreferrer"
+            >Source</a
+          >
+          <span aria-hidden="true">·</span>
+          <a
+            href="https://github.com/mithun-27/StatePact/tree/main/docs"
+            target="_blank"
+            rel="noopener noreferrer"
+            >Documentation</a
+          >
+          <span aria-hidden="true">·</span>
+          <a href="benchmark-latest.json" target="_blank" rel="noopener noreferrer"
+            >Benchmark artifact</a
+          >
+        </p>
+      </div>
+    </footer>
+
+    <noscript>
+      <div class="noscript">This playground needs JavaScript. The Python implementation is on GitHub.</div>
+    </noscript>
+
+    <script src="app.js"></script>
+  </body>
+</html>
