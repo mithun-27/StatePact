@@ -120,13 +120,15 @@ you cite numbers in docs, cite the artifact filename.
 
 ## Releasing
 
-Release steps are maintainer-only and require PyPI Trusted Publishing:
+Release steps are maintainer-only and require PyPI Trusted Publishing. The full,
+reproducible procedure — version bump, gate commands, tagging, publishing and
+post-release verification — lives in [RELEASING.md](RELEASING.md).
 
-1. Update the version in `src/statepact/__about__.py` and `CHANGELOG.md`.
-2. `uv build` and `uvx twine check dist/*`.
-3. Tag `vX.Y.Z` and publish a GitHub release; the `publish.yml` workflow
-   publishes to PyPI through the `pypi` environment.
-4. Deploy the docs with the `Docs` workflow.
+Two rules matter most:
+
+1. Never yank a published release. Old versions stay installable; ship the next
+   patch instead.
+2. Tags are immutable. Cut `vX.Y.Z` only from a commit whose full gate passed.
 
 ## License
 

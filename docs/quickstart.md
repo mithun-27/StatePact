@@ -8,17 +8,16 @@
 
 ## Install
 
-PyPI publication of 0.1.0 is pending. Install from source:
+```bash
+pip install statepact
+pip install "statepact[postgres,redis]"   # backend drivers
+```
+
+For development from a checkout:
 
 ```bash
 git clone https://github.com/mithun-27/StatePact
 cd StatePact
-python -m pip install ".[postgres,redis]"
-```
-
-For development:
-
-```bash
 uv sync --extra dev
 ```
 

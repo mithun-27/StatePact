@@ -88,13 +88,15 @@ This library is Apache‑2.0. When you distribute a product that includes StateP
 
 If a new release breaks a production workflow:
 
-1. Pin the existing version in your package manager (`pip install statepact==0.1.0`).
+1. Pin the existing version in your package manager (`pip install statepact==0.1.1`).
 2. Use the `TransactionLog` to replay the last few transactions and verify the effects.
 3. If necessary, revert to a known‑good checkpoint in your framework (LangGraph, CrewAI, …) because StatePact does not provide its own checkpointing.
 
 ## Upgrading
 
-0.1.0 is the first public release. The documented public surface is
+0.1.1 is the current patch release on top of the first public release, 0.1.0.
+It has **no API or behaviour changes**, so upgrading from 0.1.0 requires no code
+changes. The documented public surface is
 `TransactionManager`, `AgentSession`, `SharedResource`, `RetryPolicy`,
 `LeaseManager`, `IdempotentExecutor` and the exception hierarchy. Imports under
 `statepact.core`, `statepact.concurrency`, `statepact.coordination` and

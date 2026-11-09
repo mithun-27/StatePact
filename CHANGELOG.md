@@ -7,29 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Changed
+## [0.1.1] - 2026-11-09
 
-* Renamed the project from **AgentCommit** to **StatePact** before the first
-  PyPI release, because `agentcommit` normalizes to the already-published
-  `agent-commit` distribution. The distribution is now `statepact`, the import
-  package is `statepact`, the CLI is `statepact`, and environment variables use
-  the `STATEPACT_` prefix. The GitHub repository is
-  [mithun-27/StatePact](https://github.com/mithun-27/StatePact). There was no
-  prior PyPI release under the old name.
-
-### Added
-
-### Changed
+Patch release with **no API or behaviour changes**. Upgrading from 0.1.0 requires
+no code changes.
 
 ### Fixed
 
-### Deprecated
+* The PyPI project page and the README/docs no longer claim that 0.1.0 is
+  unpublished; `pip install statepact` is now the documented install path.
+* The Hugging Face Space preview no longer fails with
+  `github.com refused to connect`: every external link opens in a new tab and a
+  click guard stops the preview iframe from navigating away from the playground.
+  The benchmark artifact is served from the Space itself.
+* Removed a duplicate `### Changed` heading from this changelog.
 
-### Removed
+### Added
 
-### Security
+* `RELEASING.md`, documenting the release and verification procedure.
+* The static Space sources are versioned under `spaces/`.
 
-### Dependencies
+### Changed
+
+* The `Documentation` project URL now points at
+  <https://mithun-27.github.io/StatePact/>.
+* CI runs the test suite on Python 3.12 and 3.13, installs the built wheel into a
+  clean virtual environment and runs `statepact --version`, `statepact info` and
+  `statepact smoke`, and builds the docs with `mkdocs build --strict`.
+
+### Upgrade notes
+
+* No code changes required. Pin `statepact==0.1.0` if you need the previous
+  release; it remains available on PyPI and is not yanked.
 
 ## [0.1.0] - 2026-11-06
 
@@ -68,7 +77,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-* README states PyPI 0.1.0 publication is pending (install from source) until Trusted Publishing succeeds.
 * README/docs must not claim an `statepact.observability.otel` bridge exists unless it is implemented.
 * `LeaseLostError` table in README incorrectly marked `retryable` as `yes*`.
 * Fixed docs inaccuracies:

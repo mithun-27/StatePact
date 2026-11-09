@@ -92,7 +92,7 @@ instead of observing a newer sequence.
 | Backend | Retention |
 |---|---|
 | memory | up to 100,000 keys, oldest evicted in insertion order |
-| PostgreSQL | durable rows; no automatic pruning in 0.1.0 |
+| PostgreSQL | durable rows; no automatic pruning in 0.1.1 |
 | Redis | `idempotency_ttl_seconds`, default 30 days |
 
 If a replay arrives after the record is gone, it is a new commit. Size the

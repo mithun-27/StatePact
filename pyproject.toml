@@ -69,7 +69,7 @@ dev = [
 
 [project.urls]
 Homepage = "https://github.com/mithun-27/StatePact"
-Documentation = "https://github.com/mithun-27/StatePact#documentation"
+Documentation = "https://mithun-27.github.io/StatePact/"
 Repository = "https://github.com/mithun-27/StatePact"
 Issues = "https://github.com/mithun-27/StatePact/issues"
 Changelog = "https://github.com/mithun-27/StatePact/blob/main/CHANGELOG.md"
