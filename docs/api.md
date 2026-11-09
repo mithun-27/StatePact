@@ -1,6 +1,6 @@
 # API Reference
 
-This document lists the public, stable API of StatePact 0.1.0. The surface is intentionally small so you can build multiple agents on a single manager.
+This document lists the public, stable API of StatePact 0.1.1. The surface is intentionally small so you can build multiple agents on a single manager.
 
 ## Top‑level exports
 

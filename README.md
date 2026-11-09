@@ -6,13 +6,16 @@ lease/fencing tokens for state that multiple agents read and write.
 
 [![CI](https://github.com/mithun-27/StatePact/actions/workflows/ci.yml/badge.svg)](https://github.com/mithun-27/StatePact/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/)
+[![Docs](https://img.shields.io/badge/docs-live-6d5efc.svg)](https://mithun-27.github.io/StatePact/)
 [![Playground](https://img.shields.io/badge/playground-live-6d5efc.svg)](https://huggingface.co/spaces/Mithun-2714/StatePact-Concurrency-Playground)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/status-alpha-orange.svg)](#status)
 
 ```
-pip install statepact   # 0.1.0 release is pending; see Install below
+pip install statepact
 ```
+
+Docs: **https://mithun-27.github.io/StatePact/**
 
 ---
 
@@ -61,20 +64,21 @@ not the Python engine; the runnable Python demo is in [`demo/`](demo/).
 
 ## Install
 
-0.1.0 is prepared and tested but not yet on PyPI (Trusted Publishing is being
-configured). Install from source in the meantime:
+```bash
+pip install statepact                 # core, in-memory backend only
+pip install "statepact[postgres]"     # + asyncpg
+pip install "statepact[redis]"        # + redis
+pip install "statepact[demo]"         # + the Gradio playground
+```
+
+Requires Python 3.12+. The core dependency is Pydantic 2. PostgreSQL and Redis are
+optional extras. To work on StatePact itself:
 
 ```bash
 git clone https://github.com/mithun-27/StatePact
 cd StatePact
-python -m pip install .            # core, in-memory backend only
-python -m pip install ".[postgres]" # + asyncpg
-python -m pip install ".[redis]"    # + redis
-python -m pip install ".[demo]"     # + Gradio playground
+uv sync --extra dev
 ```
-
-Requires Python 3.12+. The core dependency is Pydantic 2. PostgreSQL and Redis are
-optional extras. `uv sync --extra dev` sets up the development environment.
 
 ## Quickstart
 
@@ -375,8 +379,10 @@ increment.
 
 ## Status
 
-**0.1.0 — alpha.** The semantics, tests and benchmarks are real; the API may still
-change before 1.0. Known limitations are listed in
+**0.1.1 — alpha.** 0.1.1 is a documentation and release-hardening patch: there
+are **no API or behaviour changes**, so upgrading from 0.1.0 needs no code
+changes. The semantics, tests and benchmarks are real; the API may still change
+before 1.0. Known limitations are listed in
 [docs/limitations.md](docs/limitations.md) — notably: no predicate/range tracking,
 the PostgreSQL backend is throughput-limited by its global commit lock, the
 serializability audit is process-local, and external side effects require

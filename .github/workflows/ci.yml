@@ -49,8 +49,12 @@ jobs:
         run: uv run mypy src
 
   test:
-    name: Tests
+    name: Tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.13"]
     services:
       postgres:
         image: postgres:16-alpine
@@ -84,10 +88,10 @@ jobs:
           enable-cache: true
 
       - name: Set up Python
-        run: uv python install ${{ env.PYTHON_VERSION }}
+        run: uv python install ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: uv sync --extra dev --extra postgres --extra redis --extra otel
+        run: uv sync --python ${{ matrix.python-version }} --extra dev --extra postgres --extra redis --extra otel
 
       - name: Run tests
         run: uv run pytest -q --cov=statepact --cov-report=term-missing --cov-report=xml
@@ -96,7 +100,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-xml
+          name: coverage-xml-${{ matrix.python-version }}
           path: coverage.xml
           if-no-files-found: ignore
 
@@ -147,3 +151,77 @@ jobs:
         with:
           name: dist
           path: dist/
+
+  wheel:
+    name: Wheel install smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install ${{ env.PYTHON_VERSION }}
+
+      - name: Build wheel
+        run: uv build --wheel
+
+      - name: Verify wheel contents
+        run: |
+          python - <<'PY'
+          import glob
+          import zipfile
+
+          wheel = glob.glob("dist/*.whl")[0]
+          with zipfile.ZipFile(wheel) as zf:
+              names = zf.namelist()
+          assert any(name.endswith("statepact/py.typed") for name in names), "py.typed missing"
+          assert not [
+              name for name in names if "__pycache__" in name or name.endswith(".pyc")
+          ], "bytecode found in wheel"
+          print(f"{wheel}: {len(names)} entries, py.typed present")
+          PY
+
+      - name: Install into a clean virtual environment
+        run: |
+          uv venv --python ${{ env.PYTHON_VERSION }} .venv-smoke
+          uv pip install --python .venv-smoke/bin/python dist/*.whl
+          .venv-smoke/bin/python - <<'PY'
+          import importlib.metadata
+
+          import statepact
+
+          installed = importlib.metadata.version("statepact")
+          assert statepact.__version__ == installed, (statepact.__version__, installed)
+          print(f"statepact {installed} imported from {statepact.__file__}")
+          PY
+          .venv-smoke/bin/statepact --version
+          .venv-smoke/bin/statepact info
+          .venv-smoke/bin/statepact smoke
+
+  docs:
+    name: Docs build (strict)
+    runs-on: ubuntu-latest
+    env:
+      NO_MKDOCS_2_WARNING: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: ${{ env.UV_VERSION }}
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install ${{ env.PYTHON_VERSION }}
+
+      - name: Install docs dependencies
+        run: uv sync --extra docs
+
+      - name: Build with strict mode
+        run: uv run mkdocs build --strict

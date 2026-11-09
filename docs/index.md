@@ -41,13 +41,12 @@ browser simulation of the protocol; the Python engine is in this repository.
 ## Install
 
 ```bash
-git clone https://github.com/mithun-27/StatePact
-cd StatePact
-python -m pip install ".[postgres,redis]"
+pip install statepact
+pip install "statepact[postgres,redis]"   # add the PostgreSQL and Redis backends
 ```
 
 Python 3.12+ is required. The core dependency is Pydantic 2; backend drivers are
-optional extras. A 0.1.0 PyPI release is pending, so install from source for now.
+optional extras. See the [Quickstart](quickstart.md) for a first transaction.
 
 ## Five-minute tour
 
@@ -98,6 +97,6 @@ Next: [Quickstart](quickstart.md) → [Concepts](concepts.md) →
 
 ## Status
 
-0.1.0 is an alpha. The engine, integration tests against real PostgreSQL/Redis,
+0.1.1 is an alpha. The engine, integration tests against real PostgreSQL/Redis,
 property tests and benchmarks are real and reproducible. The public API may change
 before 1.0.

@@ -44,7 +44,7 @@ attempt's outcome is unknown. With a key:
   retried read-modify-write replays even though it computes a different new value.
   Use `idempotency_fingerprint` when the payload itself must be bound.
 * PostgreSQL retains idempotency rows durably and does not prune them
-  automatically in 0.1.0.
+  automatically in 0.1.1.
 * Redis expires records after `idempotency_ttl_seconds` (30 days by default).
 * The memory backend keeps up to 100,000 keys and evicts the oldest.
 
@@ -129,7 +129,7 @@ are tested against the versions in the development environment, not every versio
 
 ## Status
 
-0.1.0 is alpha. The core transaction path is tested against the invariants in
+0.1.1 is alpha. The core transaction path is tested against the invariants in
 [docs/benchmarks.md](benchmarks.md), but the public API may change before 1.0.0.
 Pin an exact version in production and read the
 [changelog](https://github.com/mithun-27/StatePact/blob/main/CHANGELOG.md) before upgrading.
