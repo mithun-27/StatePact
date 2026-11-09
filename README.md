@@ -1,393 +1,505 @@
 # StatePact
 
-**Transaction management for autonomous AI agents.** Optimistic concurrency, MVCC,
-strict 2PL, serializability checking, retries, idempotent commits and
-lease/fencing tokens for state that multiple agents read and write.
+### Transaction management for autonomous AI agents
+
+**Concurrency control for shared agent state — with optimistic validation, MVCC, strict two-phase locking, serializability checks, retries, idempotency, and lease fencing.**
 
 [![CI](https://github.com/mithun-27/StatePact/actions/workflows/ci.yml/badge.svg)](https://github.com/mithun-27/StatePact/actions/workflows/ci.yml)
-[![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg)](https://www.python.org/)
-[![Docs](https://img.shields.io/badge/docs-live-6d5efc.svg)](https://mithun-27.github.io/StatePact/)
-[![Playground](https://img.shields.io/badge/playground-live-6d5efc.svg)](https://huggingface.co/spaces/Mithun-2714/StatePact-Concurrency-Playground)
-[![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/status-alpha-orange.svg)](#status)
+[![Docs](https://img.shields.io/badge/docs-live-6D5EFC)](https://mithun-27.github.io/StatePact/)
+![Python 3.12+](https://img.shields.io/badge/Python-3.12%2B-3776AB?logo=python&logoColor=white)
+[![Live Playground](https://img.shields.io/badge/Live%20Playground-Try%20it-6D5EFC)](https://huggingface.co/spaces/Mithun-2714/StatePact-Concurrency-Playground)
+[![Apache 2.0 License](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+![Alpha](https://img.shields.io/badge/Status-Alpha-orange.svg)
 
-```
-pip install statepact
-```
-
-Docs: **https://mithun-27.github.io/StatePact/**
+[**Live Concurrency Playground ↗**](https://huggingface.co/spaces/Mithun-2714/StatePact-Concurrency-Playground) · [Documentation](https://mithun-27.github.io/StatePact/) · [Report an issue](https://github.com/mithun-27/StatePact/issues)
 
 ---
 
-## The problem
+> **The problem:** Multiple autonomous agents can read the same state, make decisions independently, and overwrite one another's updates. StatePact brings transaction-style concurrency control to that shared state.
 
-An agent reads shared state, thinks, then writes it back:
+## Table of contents
 
-```python
-stock = await session.read("sku-1")   # 1
-await think()                         # three other agents also read 1
-await session.write("sku-1", stock - 1)
-```
+- [Why StatePact?](#why-statepact)
+- [Quick start](#quick-start)
+- [How it works](#how-it-works)
+- [Isolation modes](#isolation-modes)
+- [Failure and retry semantics](#failure-and-retry-semantics)
+- [Idempotency](#idempotency)
+- [Leases and fencing tokens](#leases-and-fencing-tokens)
+- [Storage backends](#storage-backends)
+- [Agent framework integrations](#agent-framework-integrations)
+- [Benchmarks](#benchmarks)
+- [API overview](#api-overview)
+- [Documentation](#documentation)
+- [Development](#development)
+- [Project status and limitations](#project-status-and-limitations)
+- [What StatePact is not](#what-statepact-is-not)
+- [License](#license)
 
-Without a transaction boundary, two reservations both write `0`: one unit is sold
-twice, or a counter loses updates, or two agents both decide they are the one on
-call. Framework checkpointers persist *messages*, not **conflict detection across
-concurrent tool calls**. StatePact adds the missing concurrency layer:
+## Why StatePact?
 
-* **Isolation you choose** — `optimistic`, `snapshot`, `serializable`,
-  `pessimistic`, or `none` as an explicitly unsafe baseline.
-* **Correct retries** — a conflict re-runs the whole transaction on a fresh
-  snapshot; an unknown failure is never silently retried.
-* **Idempotent commits** — the same operation replayed returns the original
-  result instead of applying twice.
-* **Leases with fencing tokens** — a paused worker that wakes up after its lease
-  expired cannot overwrite the new owner.
-* **Backends you can deploy** — process-local memory, PostgreSQL, or Redis.
+Imagine three AI agents managing the last item in an online store:
 
-StatePact is framework-independent. LangGraph, CrewAI and AutoGen adapters are
-thin optional wrappers; the same engine works with a custom agent loop.
+1. Agent A reads `stock = 1`.
+2. Agent B reads `stock = 1`.
+3. Both decide the item is available.
+4. Both write `stock = 0`.
 
-Try the [live concurrency playground](https://huggingface.co/spaces/Mithun-2714/StatePact-Concurrency-Playground).
-It is a browser simulation of the same validation rules (free static hosting),
-not the Python engine; the runnable Python demo is in [`demo/`](demo/).
+Two reservations have now claimed one item. This is a classic **race condition**, and it becomes increasingly important as agents execute tools and modify shared state concurrently.
 
-## What it is not
+Framework checkpointers persist messages and workflow state, but they do not automatically provide conflict detection across concurrent tool calls. **StatePact adds that missing coordination layer.**
 
-* Not a workflow/checkpoint engine (use LangGraph, Temporal, …). It coordinates
-  **shared mutable state**, not message history.
-* Not a vector store or a database. PostgreSQL/Redis store the *coordination*
-  state; your domain data can live anywhere.
-* Not exactly-once delivery to arbitrary external APIs. The effect journal gives
-  at-most-once **completion** when the external action is idempotent or accepts an
-  idempotency key. See [docs/idempotency.md](docs/idempotency.md).
-* Not a multi-database distributed transaction protocol.
+### What you get
 
-## Install
+| Capability | What it does |
+| --- | --- |
+| **Isolation modes** | Choose `optimistic`, `snapshot`, `serializable`, `pessimistic`, or explicitly unsafe `none` |
+| **Conflict-aware retries** | Re-run the entire transaction against a fresh snapshot after a retryable conflict |
+| **Idempotent commits** | Replay an operation without applying its writes twice |
+| **Leases and fencing** | Prevent an expired worker from writing after a newer lease owner takes over |
+| **Multiple backends** | Use process-local memory, PostgreSQL, or Redis |
+| **Framework integrations** | Connect LangGraph, CrewAI, AutoGen, or a custom agent loop |
+
+StatePact is framework-independent. Framework adapters are optional wrappers around the same transaction engine.
+
+## Quick start
+
+### Installation
+
+**Python 3.12+** is required.
 
 ```bash
-pip install statepact                 # core, in-memory backend only
-pip install "statepact[postgres]"     # + asyncpg
-pip install "statepact[redis]"        # + redis
+pip install statepact                 # core package — in-memory backend
+pip install "statepact[postgres]"     # + PostgreSQL backend
+pip install "statepact[redis]"        # + Redis backend
 pip install "statepact[demo]"         # + the Gradio playground
 ```
 
-Requires Python 3.12+. The core dependency is Pydantic 2. PostgreSQL and Redis are
-optional extras. To work on StatePact itself:
+The core dependency is Pydantic 2. PostgreSQL and Redis support are optional extras. For development from a checkout:
 
 ```bash
-git clone https://github.com/mithun-27/StatePact
+git clone https://github.com/mithun-27/StatePact.git
 cd StatePact
 uv sync --extra dev
 ```
 
-## Quickstart
+### Your first transaction
 
 ```python
 import asyncio
+
 from statepact import RetryPolicy, TransactionManager
 
 
 async def main() -> None:
-    manager = TransactionManager()                 # in-memory backend
+    manager = TransactionManager()
+
     inventory = manager.resource("inventory", {"sku-1": 10})
     await inventory.ensure(manager)
 
     async def reserve(session) -> bool:
         stock = await session.read("sku-1")
-        await asyncio.sleep(0)                     # agent thinking between read and write
+
+        # Simulate work between reading and writing.
+        await asyncio.sleep(0)
+
         if stock <= 0:
             return False
+
         await session.write("sku-1", stock - 1)
         return True
 
-    ok = await manager.run(
+    reserved = await manager.run(
         "agent-1",
         [inventory],
         reserve,
         retry_policy=RetryPolicy(max_attempts=100),
     )
-    print(ok, await inventory.read("sku-1"))
+
+    print("Reserved:", reserved)
+    print("Remaining stock:", await inventory.read("sku-1"))
+
     await manager.close()
 
 
 asyncio.run(main())
 ```
 
-`manager.run` opens a fresh session per attempt and retries only retryable
-conflicts. For explicit control, open a session yourself:
+`manager.run()` opens a fresh session for each attempt and retries only retryable conflicts.
+
+For explicit transaction control:
 
 ```python
-async with manager.session(agent_id="planner", resources=[inventory]) as session:
+async with manager.session(
+    agent_id="planner",
+    resources=[inventory],
+) as session:
     stock = await session.read("sku-1")
     await session.write("sku-1", stock - 1)
-    result = await session.commit()     # explicit: exiting without commit aborts
+
+    result = await session.commit()
+
+# Exiting a session without committing aborts the transaction.
 ```
 
-Runnable examples: [`examples/`](examples/) — inventory, idempotency, leases,
-PostgreSQL counter.
+More runnable examples are available in [`examples/`](examples/): inventory, idempotency, leases, and a PostgreSQL counter.
+
+## How it works
+
+A session stages reads and writes. It does **not** apply state directly. At commit time, StatePact builds a `CommitPlan`; the selected backend validates the plan and applies it atomically, or rejects it with a classified conflict.
+
+```text
+ AgentSession
+      │
+      │ staged reads / writes
+      ▼
+ Transaction
+      │
+      ▼
+   CommitPlan
+      │
+      ├── OCC validation
+      ├── 2PL lock manager
+      ├── serializability audit
+      └── retry / idempotency
+      │
+      ▼
+ StorageBackend
+      ├── MemoryBackend
+      ├── PostgresBackend
+      └── RedisBackend
+
+ Supporting components:
+   • event bus / transaction log / metrics
+   • lease + fencing token
+```
+
+This separation allows the same transaction semantics to be tested against three different storage engines.
 
 ## Isolation modes
 
-| Mode | Reads | Commit validation | Guarantees for tracked keys | Use when |
-|---|---|---|---|---|
-| `none` | latest | none | **none** — lost updates are expected | baseline/demo only |
-| `snapshot` | MVCC snapshot | write base versions (first-committer-wins) | no lost updates; **write skew possible** | high throughput, skew tolerated |
-| `optimistic` | MVCC snapshot | every read + write base version | serializable for the tracked key set | default |
-| `serializable` | MVCC snapshot | `optimistic` + serialization-graph audit | same as `optimistic`, with cycle diagnostics | audit/high assurance |
-| `pessimistic` | locked reads | strict 2PL, deadlock detection/timeout | serializable for locked keys | hot keys, predictable contention |
+StatePact offers five isolation modes:
 
-Reads are tracked at **key granularity**. Predicate/range reads (`SELECT … WHERE`)
-are not tracked, so a transaction that depends on "no rows matched" is not
-protected from a concurrent insert. Read-only commits skip validation and do not
-consume a version.
+| Mode | Read behavior | Commit validation | Guarantees for tracked keys | Best suited for |
+| --- | --- | --- | --- | --- |
+| `none` | Latest | None | No guarantees; lost updates are expected | Baselines and demos only |
+| `snapshot` | MVCC snapshot | Write base versions (first-committer-wins) | Prevents lost updates; write skew is possible | High throughput when skew is acceptable |
+| `optimistic` | MVCC snapshot | Every read and write base version | Serializable for the tracked key set | General default |
+| `serializable` | MVCC snapshot | Optimistic validation plus serialization-graph audit | Same guarantee as `optimistic`, with cycle diagnostics | Audits and higher assurance |
+| `pessimistic` | Locked reads | Strict 2PL, deadlock detection, and timeout | Serializable for locked keys | Hot keys and predictable contention |
 
-The benchmark demonstrates the difference on the classic write-skew anomaly
-(two on-call doctors): `serializable` rejects one transaction in 20/20 trials;
-`snapshot` commits both and violates the invariant in 20/20 trials.
+> [!IMPORTANT]
+> Reads are tracked at **key granularity**. Predicate and range reads (for example, `SELECT ... WHERE`) are not tracked. A transaction that depends on "no rows matched" is therefore not protected from a concurrent insert.
 
-## Failure semantics
+Read-only commits skip validation and do not consume a version.
 
-Every error answers three questions: did it commit, is retry safe, which
-resource/key failed. `ConflictError` always means **not committed**.
+The included write-skew benchmark uses the classic two-on-call-doctors scenario:
 
-| Exception | Retryable | Meaning |
-|---|---|---|
-| `ReadWriteConflict` | yes | a key this transaction read changed before commit |
-| `WriteWriteConflict` | yes | another transaction wrote a key first |
-| `StaleSnapshotError` | yes | the snapshot is no longer valid |
-| `DeadlockError` | yes | wait-for cycle broken by aborting this transaction |
-| `LockTimeoutError` | yes | lock acquisition timed out |
-| `LeaseLostError` | **no** | the fencing token is stale; re-acquire the lease |
-| `SerializationError` | yes | a serialization cycle was detected |
-| `RetryExhaustedError` | no | the retry policy gave up |
-| `IdempotencyMismatchError` | no | a key was reused with a different payload |
-| `StorageError` | no | backend/transport failure; commit state may be unknown |
+- `serializable` rejects one transaction in **20/20 trials**.
+- `snapshot` commits both transactions and violates the invariant in **20/20 trials**.
 
-Retryable exceptions can be retried safely because the transaction did not commit. `LeaseLostError` is not retryable; the caller must re-acquire a lease before retrying. Unknown commit outcomes (e.g., transport failures) are logged as `FAILED` and are not retried; use `idempotency_key` to make the operation safe to resubmit.
+## Failure and retry semantics
+
+Every transaction error should answer three questions:
+
+- Did the transaction commit?
+- Is retrying safe?
+- Which resource or key failed?
+
+A `ConflictError` always means **the transaction did not commit**.
+
+| Exception | Retryable? | Meaning |
+| --- | :---: | --- |
+| `ReadWriteConflict` | Yes | A key read by this transaction changed before commit |
+| `WriteWriteConflict` | Yes | Another transaction wrote the key first |
+| `StaleSnapshotError` | Yes | The snapshot is no longer valid |
+| `DeadlockError` | Yes | A wait-for cycle was broken by aborting this transaction |
+| `LockTimeoutError` | Yes | Lock acquisition timed out |
+| `LeaseLostError` | **No** | The fencing token is stale; re-acquire the lease |
+| `SerializationError` | Yes | A serialization cycle was detected |
+| `RetryExhaustedError` | No | The retry policy gave up |
+| `IdempotencyMismatchError` | No | An idempotency key was reused with a different payload |
+| `StorageError` | No | Backend or transport failure; commit state may be unknown |
+
+Retryable conflicts are safe to retry because the transaction did not commit. `LeaseLostError` requires acquiring a new lease first.
+
+Unknown commit outcomes, such as transport failures, are recorded as `FAILED` and are not automatically retried. Use an `idempotency_key` to make resubmission safe.
 
 ## Idempotency
 
-Pass `idempotency_key` to a session (or to `manager.run`). Replaying the key
-returns the original `CommitResult` with `replayed=True`; writes are not applied
-again.
+Pass an `idempotency_key` to a session or to `manager.run()`. Replaying the same key returns the original `CommitResult` with `replayed=True`; the writes are not applied again.
 
-The default fingerprint is **value-insensitive**: it hashes the agent id and the
-write footprint (`resource`, `key`, `op`). A retried read-modify-write computes a
-different new value but is still the same operation, so it correctly replays
-instead of raising a mismatch. If you need strict payload binding, pass
-`idempotency_fingerprint` explicitly.
+The default fingerprint is **value-insensitive**. It hashes the agent ID and write footprint (`resource`, `key`, `op`). This is useful for read-modify-write retries: the newly computed value may differ, while the logical operation remains the same.
 
-External side effects use a separate journal (`IdempotentExecutor`,
-`MemoryEffectStore`) with `PENDING → EXECUTING → SUCCEEDED|FAILED` transitions and
-reserve/execute phases. This is at-most-once **completion**, not a distributed
-transaction.
+For strict payload binding, provide `idempotency_fingerprint` explicitly.
 
-## Leases and fencing
+### External side effects
 
-A lease alone is unsafe: an owner can pause, lose the lease, and wake up later.
-Every write under a lease therefore carries the lease token, and the backend
-rejects any token older than the highest token it has observed:
+External effects use a separate journal through `IdempotentExecutor` and `MemoryEffectStore`, with these transitions:
+
+```text
+PENDING → EXECUTING → SUCCEEDED | FAILED
+```
+
+The journal separates reservation from execution. It provides at-most-once **completion**, not a distributed transaction. For details, see [Idempotency and side effects](docs/idempotency.md).
+
+## Leases and fencing tokens
+
+A lease by itself is not enough. A worker can pause, lose its lease, and wake up after another worker has taken ownership.
+
+StatePact attaches a fencing token to writes made under a lease. The backend rejects any token older than the highest token it has observed for that resource.
 
 ```python
-lease = await manager.lease("job", owner="worker-a", ttl_seconds=30)
-async with manager.session(agent_id="worker-a", resources=[job], fence=lease.token):
+lease = await manager.lease(
+    "job",
+    owner="worker-a",
+    ttl_seconds=30,
+)
+
+async with manager.session(
+    agent_id="worker-a",
+    resources=[job],
+    fence=lease.token,
+) as session:
     ...
 ```
 
-Tokens are monotonic high-water marks per resource and are never reused, even
-after release or expiry. See [docs/leases.md](docs/leases.md).
+Tokens are monotonic high-water marks per resource. They are never reused, even after release or expiry.
 
-## Backends
+See [Leases and fencing](docs/leases.md).
 
-| | `MemoryBackend` | `PostgresBackend` | `RedisBackend` |
-|---|---|---|---|
-| Scope | one process | multi-process | multi-process |
-| Durable | no | yes (tables) | yes (prefix) |
-| Commit atomicity | asyncio lock | DB transaction + advisory lock | Lua script |
-| MVCC history | in-memory, GC'd | `statepact_history` | capped Redis lists |
-| Pessimistic locks | wait-for graph | polling + timeout | Lua + TTL |
-| Leases/fencing | in-memory | durable | durable |
-| Idempotency | in-memory | durable | TTL'd |
-| Extra | — | `pip install .[postgres]` | `pip install .[redis]` |
+## Storage backends
 
-PostgreSQL creates its schema on `connect()`. The commit path serializes
-validation and application behind one `pg_advisory_xact_lock`, which makes
-cross-process commits linearizable at the cost of throughput. Redis executes each
-commit as one Lua script. The memory backend is the semantic reference and is
-used by the test suite; it is not safe across processes.
+| Feature | `MemoryBackend` | `PostgresBackend` | `RedisBackend` |
+| --- | --- | --- | --- |
+| Scope | One process | Multi-process | Multi-process |
+| Durable | No | Yes — tables | Yes — key prefix |
+| Commit atomicity | `asyncio` lock | DB transaction + advisory lock | Lua script |
+| MVCC history | In-memory, garbage-collected | `statepact_history` | Capped Redis lists |
+| Pessimistic locks | Wait-for graph | Polling + timeout | Lua + TTL |
+| Leases / fencing | In-memory | Durable | Durable |
+| Idempotency | In-memory | Durable | TTL-based |
+
+### PostgreSQL
+
+PostgreSQL creates its schema on `connect()`. The commit path serializes validation and application behind one `pg_advisory_xact_lock`, making cross-process commits linearizable at the cost of throughput.
 
 ```python
+from statepact import TransactionManager
 from statepact.storage.postgres import PostgresBackend
 
-backend = await PostgresBackend.connect("postgresql://user:pass@host/db")
+backend = await PostgresBackend.connect(
+    "postgresql://user:pass@host/db"
+)
 manager = TransactionManager(backend)
 ```
 
-See [docs/backends.md](docs/backends.md) for schemas, key layout and trade-offs.
+Install the optional dependency with:
 
-## Integrations
+```bash
+pip install "statepact[postgres]"
+```
 
-Framework adapters live in `statepact.integrations` and do not import the
-framework at module load:
+### Redis
+
+Redis executes each commit as a single Lua script. Install its optional dependency with:
+
+```bash
+pip install "statepact[redis]"
+```
+
+The memory backend is the semantic reference used by the test suite. It is **not** safe for coordination across processes.
+
+See [Backend details](docs/backends.md) for schemas, key layouts, and trade-offs.
+
+## Agent framework integrations
+
+Framework adapters live in `statepact.integrations`. They do not import their optional framework dependencies at module load.
+
+### LangGraph example
 
 ```python
 from statepact.integrations.langgraph import LangGraphCoordinator
 
-coordinator = LangGraphCoordinator(manager, agent_id="researcher", resources=[inventory])
+coordinator = LangGraphCoordinator(
+    manager,
+    agent_id="researcher",
+    resources=[inventory],
+)
+
 
 @coordinator.node
 async def reserve(state, session):
     stock = await session.read("sku-1")
+
     if stock == 0:
         return {"status": "sold_out"}
+
     await session.write("sku-1", stock - 1)
     return {"status": "reserved"}
+
 
 graph.add_node("reserve", reserve)
 ```
 
-* `statepact.integrations.langgraph` — wrap graph nodes; merges the returned
-  patch into state after commit.
-* `statepact.integrations.crewai` — `transaction_tool(...)` /
-  `TransactionTool`, a synchronous CrewAI tool over one atomic read-modify-write.
-* `statepact.integrations.autogen` — `AutoGenTransactionMiddleware`, a
-  transactional message handler with optional idempotency prefix.
-* `statepact.integrations.base` — `run_transaction`, `read_modify_write`,
-  `transactional` for any other framework.
+### Available adapters
 
-See [docs/integrations.md](docs/integrations.md).
+| Integration | Adapter | Purpose |
+| --- | --- | --- |
+| **LangGraph** | `LangGraphCoordinator` | Wrap graph nodes and merge returned patches after commit |
+| **CrewAI** | `transaction_tool(...)` / `TransactionTool` | Synchronous tool for an atomic read-modify-write |
+| **AutoGen** | `AutoGenTransactionMiddleware` | Transactional message handler with optional idempotency prefix |
+| **Custom agents** | `run_transaction`, `read_modify_write`, `transactional` | Reusable helpers for any framework |
+
+See [Integrations](docs/integrations.md).
 
 ## Benchmarks
 
-Measured on **2026-11-07** with the runner in this repository. Raw artifact:
-[`benchmarks/results/run-20261107T051143Z.json`](benchmarks/results/run-20261107T051143Z.json)
-(`latest.json` is identical).
+*Measured on 2026-11-07 using the benchmark runner in this repository. Raw artifact: [run-20261107T051143Z.json](benchmarks/results/run-20261107T051143Z.json) (`latest.json` is identical).*
 
-Environment: Windows 11 `10.0.26300`, Python 3.12.13, AMD64 12-logical-CPU
-VM, PostgreSQL 16 and Redis 7 in Docker Desktop on the same host. 40 agents,
-10 operations each (400 commits), 20 write-skew trials. The workload injects
-`asyncio.sleep(0)` between read and write so interleaving is guaranteed.
+**Test environment**
 
-**Throughput (committed operations/second) and retry amplification**
+- Windows 11 `10.0.26300`
+- Python 3.12.13, AMD64, 12-logical-CPU VM
+- PostgreSQL 16 and Redis 7 in Docker Desktop on the same host
+- 40 agents, 10 operations each (400 commits), and 20 write-skew trials
+- `asyncio.sleep(0)` inserted between read and write to guarantee interleaving
 
-| Scenario | memory | PostgreSQL | Redis |
-|---|---:|---:|---:|
-| Independent keys | 1,534 (1.00 attempt/op) | 53.7 (1.00) | 229.4 (1.00) |
+### Throughput and retry amplification
+
+Throughput is measured in committed operations per second. The value in parentheses is average attempts per operation.
+
+| Scenario | Memory | PostgreSQL | Redis |
+| --- | ---: | ---: | ---: |
+| Independent keys | 1,534 (1.00) | 53.7 (1.00) | 229.4 (1.00) |
 | Single hot key, zero backoff | 344 (10.75) | 7.7 (13.56) | 18.8 (20.59) |
 | Single hot key, jittered backoff | 241 (3.17) | 7.8 (12.90) | 26.8 (14.15) |
 | Read-only commits | 6,619 | 133.4 | 427.4 |
 | Lease + commit (sequential) | 3,013 | 18.3 | 88.9 |
 
-**Correctness under the same load**
+### Correctness under the same load
 
-| Check | memory | PostgreSQL | Redis |
-|---|---:|---:|---:|
+| Check | Memory | PostgreSQL | Redis |
+| --- | ---: | ---: | ---: |
 | `none`: counter after 400 increments | 10 ❌ | 24 ❌ | 10 ❌ |
 | `optimistic`: counter after 400 increments | 400 ✅ | 400 ✅ | 400 ✅ |
 | `snapshot`: write-skew violations | 20/20 ❌ | 20/20 ❌ | 20/20 ❌ |
 | `serializable`: write-skew violations | 0/20 ✅ | 0/20 ✅ | 0/20 ✅ |
 
-How to read these numbers:
+### Interpreting the results
 
-* The **correctness rows are the point**. `none` loses 376–390 of 400 updates;
-  transactions prevent that, and the invariant holds at every commit.
-* Hot-key throughput is a **worst case**: 40 agents hammer one key with immediate
-  retries. Every retry is a full commit attempt, so backends that serialize
-  commits (PostgreSQL) pay a round-trip tax per conflict. Shard hot resources or
-  use `pessimistic` locking with jitter for production hot keys.
-* The PostgreSQL backend is correctness-first: one advisory lock per commit,
-  several SQL round trips, and Docker port forwarding on Windows. It is not a
-  throughput-optimized commit engine.
-* These are **not** comparisons with other libraries. They document this engine on
-  one machine. Re-run on yours:
+- **Correctness is the key result.** With `none`, 376–390 of 400 updates are lost. With `optimistic`, all 400 increments are preserved.
+- **Hot-key throughput is a worst-case workload.** Forty agents contend on one key with immediate retries. Each retry is a full commit attempt, so serialized backends such as PostgreSQL pay a round-trip cost per conflict.
+- **For production hot keys,** consider sharding hot resources or using `pessimistic` locking with jitter.
+- **PostgreSQL is correctness-first in this implementation.** A global advisory lock per commit and several SQL round trips limit throughput. It is not a throughput-optimized commit engine.
+- **These are not comparisons against other libraries.** They document this engine's behavior on one machine.
+
+Re-run the benchmark on your machine:
 
 ```bash
 docker compose up -d postgres redis
+
 STATEPACT_TEST_POSTGRES_URL=postgresql://statepact:statepact@localhost:5432/statepact \
 STATEPACT_TEST_REDIS_URL=redis://localhost:6379/0 \
-python benchmarks/run.py --backends memory,postgres,redis --agents 40 --ops 10 --trials 20
+python benchmarks/run.py \
+  --backends memory,postgres,redis \
+  --agents 40 \
+  --ops 10 \
+  --trials 20
 ```
 
-The runner is in-process by design: it measures the engine, not an HTTP server, so
-Locust is not used. See [docs/benchmarks.md](docs/benchmarks.md) for methodology.
+The runner is in-process by design: it measures the transaction engine rather than an HTTP server, so Locust is not used.
 
-## Architecture
+See [Benchmark methodology](docs/benchmarks.md).
 
-```
-AgentSession ── staged reads/writes ──▶ Transaction ── CommitPlan ──▶ StorageBackend
-      │                                      │                         │
-      │                                      ├─ OCC validation         ├─ MemoryBackend
-      │                                      ├─ 2PL lock manager       ├─ PostgresBackend
-      │                                      ├─ serializability audit  └─ RedisBackend
-      │                                      └─ retry / idempotency
-      ├─ event bus / transaction log / metrics
-      └─ lease + fencing token
-```
+## API overview
 
-The session never applies state. It builds a `CommitPlan`; the backend validates
-and applies it atomically, or rejects it with a classified conflict. That split
-is what makes the same semantics testable against three very different storage
-engines.
+| Component | Main responsibilities |
+| --- | --- |
+| `TransactionManager` | `resource`, `session`, `run`, `run_outcome`, `lease`, `health_check`, `close`; exposes `transactions` and `stats` |
+| `AgentSession` | `read`, `get`, `get_entry`, `version`, `write`, `delete`, `commit`, `abort`; exposes `state`, `read_set`, `write_set`, `commit_result` |
+| `SharedResource` | Diagnostic reads: `read`, `get`, `version`, `versions`, `history`, `state`, `snapshot` |
+| `RetryPolicy` | `max_attempts`, `base_delay`, `max_delay`, `multiplier`, `jitter`, `retry_on` |
+| Observability | `EventBus`, `TransactionLog`, `Metrics`, and optional OpenTelemetry bridge |
 
-## API at a glance
-
-* `TransactionManager(backend=None)` — `resource`, `session`, `run`,
-  `run_outcome`, `lease`, `health_check`, `close`; `transactions`, `stats`.
-* `AgentSession` — `read`, `get`, `get_entry`, `version`, `write`, `delete`,
-  `commit`, `abort`; `state`, `read_set`, `write_set`, `commit_result`.
-* `SharedResource` — non-transactional diagnostics: `read`, `get`, `version`,
-  `versions`, `history`, `state`, `snapshot`.
-* `RetryPolicy(max_attempts, base_delay, max_delay, multiplier, jitter, retry_on)`.
-* Observability: `EventBus`, `TransactionLog`, `Metrics`; optional OpenTelemetry
-  bridge in `statepact.observability.otel`.
-
-Full reference: [docs/api.md](docs/api.md).
+Full reference: [API documentation](docs/api.md).
 
 ## Documentation
 
-Start at [docs/index.md](docs/index.md), or jump to:
+Start with the [documentation site](https://mithun-27.github.io/StatePact/) or the [documentation index](docs/index.md).
 
-* [Quickstart](docs/quickstart.md)
-* [Concepts](docs/concepts.md)
-* [Isolation and anomalies](docs/isolation.md)
-* [Backends](docs/backends.md)
-* [Leases and fencing](docs/leases.md)
-* [Idempotency and side effects](docs/idempotency.md)
-* [Retries](docs/retries.md)
-* [Integrations](docs/integrations.md)
-* [Benchmarks](docs/benchmarks.md)
-* [Operations](docs/operations.md)
-* [Limitations](docs/limitations.md)
+| Guide | Description |
+| --- | --- |
+| [Quickstart](docs/quickstart.md) | Get a transaction running |
+| [Concepts](docs/concepts.md) | Core StatePact concepts |
+| [Isolation and anomalies](docs/isolation.md) | Isolation modes and concurrency anomalies |
+| [Backends](docs/backends.md) | Storage schemas and backend trade-offs |
+| [Leases and fencing](docs/leases.md) | Lease ownership and stale-worker protection |
+| [Idempotency and side effects](docs/idempotency.md) | Safe replays and external effects |
+| [Retries](docs/retries.md) | Retry behavior and policies |
+| [Integrations](docs/integrations.md) | Agent framework adapters |
+| [Benchmarks](docs/benchmarks.md) | Methodology and results |
+| [Operations](docs/operations.md) | Operational guidance |
+| [Limitations](docs/limitations.md) | Known limitations |
 
 ## Development
 
+Set up the development environment:
+
 ```bash
 uv sync --extra dev
-uv run pytest -q                 # 121 tests; 14 integration tests skip without service URLs
+```
+
+Run the unit tests and static checks:
+
+```bash
+uv run pytest -q
 uv run ruff check src tests demo benchmarks
 uv run mypy src
+```
+
+The test suite currently contains **121 tests**. Fourteen integration tests are skipped unless service URLs are configured.
+
+Run PostgreSQL and Redis integration tests:
+
+```bash
 docker compose up -d postgres redis
+
 STATEPACT_TEST_POSTGRES_URL=postgresql://statepact:statepact@localhost:5432/statepact \
 STATEPACT_TEST_REDIS_URL=redis://localhost:6379/0 \
 uv run pytest tests/integration -q
 ```
 
-The integration suite runs the **same** behavioural contract against PostgreSQL
-and Redis (`tests/integration/backend_suite.py`), including conflicts, idempotent
-replay, leases/fencing, lock timeouts, write skew and a 20-agent concurrent
-increment.
+The integration suite runs the same behavioral contract against PostgreSQL and Redis, including conflicts, idempotent replay, leases and fencing, lock timeouts, write skew, and a 20-agent concurrent increment.
 
-## Status
+## Project status and limitations
 
-**0.1.1 — alpha.** 0.1.1 is a documentation and release-hardening patch: there
-are **no API or behaviour changes**, so upgrading from 0.1.0 needs no code
-changes. The semantics, tests and benchmarks are real; the API may still change
-before 1.0. Known limitations are listed in
-[docs/limitations.md](docs/limitations.md) — notably: no predicate/range tracking,
-the PostgreSQL backend is throughput-limited by its global commit lock, the
-serializability audit is process-local, and external side effects require
-cooperation for idempotency.
+**Current release: `0.1.1` — Alpha**
+
+0.1.1 is a documentation and release-hardening patch with **no API or behaviour changes**, so upgrading from 0.1.0 requires no code changes. The transaction semantics, tests, and benchmarks are implemented. The API may change before `1.0`.
+
+Known limitations include:
+
+- Predicate and range reads are not tracked.
+- The PostgreSQL backend's global commit lock limits throughput.
+- The serializability audit is process-local.
+- External side effects require cooperation from the external system for idempotency.
+
+See [Known limitations](docs/limitations.md) before using StatePact in production.
+
+## What StatePact is not
+
+- **Not a workflow or checkpoint engine.** Use tools such as LangGraph or Temporal for workflow orchestration. StatePact coordinates shared mutable state, not message history.
+- **Not a vector store or a database.** PostgreSQL and Redis store coordination state; your domain data can live elsewhere.
+- **Not exactly-once delivery to arbitrary external APIs.** The effect journal provides at-most-once completion when the external action is idempotent or accepts an idempotency key.
+- **Not a multi-database distributed transaction protocol.**
 
 ## License
 
-Apache-2.0. See [LICENSE](LICENSE).
+StatePact is released under the [Apache-2.0 License](LICENSE).
+
+---
+
+**StatePact — safer shared state for concurrent AI agents.**
+
+[Explore the repository](https://github.com/mithun-27/StatePact) · [Try the live playground](https://huggingface.co/spaces/Mithun-2714/StatePact-Concurrency-Playground)
