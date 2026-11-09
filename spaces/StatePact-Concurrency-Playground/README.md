@@ -61,5 +61,5 @@ page.
 ## Links
 
 * Source: https://github.com/mithun-27/StatePact
-* Docs: https://github.com/mithun-27/StatePact/tree/main/docs
+* Docs: https://mithun-27.github.io/StatePact/
 * License: Apache-2.0

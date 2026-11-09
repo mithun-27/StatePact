@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+* The Hugging Face Space `Docs` and `Documentation` links now open the hosted
+  documentation site instead of the GitHub `docs/` directory.
+
 ## [0.1.1] - 2026-11-09
 
 Patch release with **no API or behaviour changes**. Upgrading from 0.1.0 requires
