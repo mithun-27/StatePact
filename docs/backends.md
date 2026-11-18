@@ -104,9 +104,9 @@ allocation is atomic per resource.
 ### Operations
 
 ```python
-await manager.health_check()      # SELECT 1
-await backend.clear()             # truncate StatePact tables, reset seq
-await manager.close()             # closes the pool
+await manager.health_check()  # SELECT 1
+await backend.clear()  # truncate StatePact tables, reset seq
+await manager.close()  # closes the pool
 ```
 
 `clear()` is a test/playground helper. It truncates the StatePact tables in the

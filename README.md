@@ -288,9 +288,7 @@ PostgreSQL creates its schema on `connect()`. The commit path serializes validat
 from statepact import TransactionManager
 from statepact.storage.postgres import PostgresBackend
 
-backend = await PostgresBackend.connect(
-    "postgresql://user:pass@host/db"
-)
+backend = await PostgresBackend.connect("postgresql://user:pass@host/db")
 manager = TransactionManager(backend)
 ```
 
@@ -475,9 +473,9 @@ The integration suite runs the same behavioral contract against PostgreSQL and R
 
 ## Project status and limitations
 
-**Current release: `0.1.1` — Alpha**
+**Current release: `0.1.2` — Alpha**
 
-0.1.1 is a documentation and release-hardening patch with **no API or behaviour changes**, so upgrading from 0.1.0 requires no code changes. The transaction semantics, tests, and benchmarks are implemented. The API may change before `1.0`.
+0.1.2 is a patch release focused on trust, observability, and documentation improvements with **no core transaction or isolation semantic changes**, so upgrading from 0.1.1 requires no code changes. The transaction semantics, tests, and benchmarks are implemented. The API may change before `1.0`.
 
 Known limitations include:
 

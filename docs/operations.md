@@ -88,19 +88,20 @@ This library is Apache‑2.0. When you distribute a product that includes StateP
 
 If a new release breaks a production workflow:
 
-1. Pin the existing version in your package manager (`pip install statepact==0.1.1`).
+1. Pin a known-good version in your package manager (for example `pip install statepact==0.1.1`).
 2. Use the `TransactionLog` to replay the last few transactions and verify the effects.
 3. If necessary, revert to a known‑good checkpoint in your framework (LangGraph, CrewAI, …) because StatePact does not provide its own checkpointing.
 
 ## Upgrading
 
-0.1.1 is the current patch release on top of the first public release, 0.1.0.
-It has **no API or behaviour changes**, so upgrading from 0.1.0 requires no code
-changes. The documented public surface is
-`TransactionManager`, `AgentSession`, `SharedResource`, `RetryPolicy`,
-`LeaseManager`, `IdempotentExecutor` and the exception hierarchy. Imports under
-`statepact.core`, `statepact.concurrency`, `statepact.coordination` and
-`statepact.storage` are supported but may change before 1.0.0.
+0.1.2 is the current patch release. It includes additive trust/observability/DX
+improvements and documentation updates with **no core transaction or isolation
+semantic changes**, so upgrading from 0.1.1 requires no code changes. The
+documented public surface is `TransactionManager`, `AgentSession`,
+`SharedResource`, `RetryPolicy`, `LeaseManager`, `IdempotentExecutor` and the
+exception hierarchy. Imports under `statepact.core`, `statepact.concurrency`,
+`statepact.coordination` and `statepact.storage` are supported but may change
+before 1.0.0.
 
 The `otel` extra is optional and does not affect core functionality. The default
 idempotency fingerprint is **value-insensitive**; confirm that this replay

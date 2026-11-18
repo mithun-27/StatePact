@@ -64,9 +64,9 @@ snapshot.
 ```python
 from statepact.integrations.base import transactional
 
+
 @transactional(manager, agent_id="worker", resources=[inventory])
-async def reserve(session):
-    ...
+async def reserve(session): ...
 ```
 
 `run_sync(coroutine)` runs an awaitable from synchronous framework code. It
@@ -89,6 +89,7 @@ coordinator = LangGraphCoordinator(
     isolation="optimistic",
 )
 
+
 @coordinator.node
 async def reserve(state, session):
     stock = await session.read("sku-1")
@@ -96,6 +97,7 @@ async def reserve(state, session):
         return {"status": "sold_out"}
     await session.write("sku-1", stock - 1)
     return {"status": "reserved"}
+
 
 graph.add_node("reserve", reserve)
 ```
@@ -163,12 +165,14 @@ middleware = AutoGenTransactionMiddleware(
     idempotency_prefix="run-42",
 )
 
+
 @middleware.transactional
 async def handle(message, session):
     plan = await session.get("plan", default=[])
     plan.append(message.content)
     await session.write("plan", plan)
     return plan
+
 
 # AutoGen calls handle(message); the middleware supplies the session.
 ```

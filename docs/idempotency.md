@@ -31,7 +31,7 @@ async with manager.session(
     balance = await session.read("balance")
     await session.write("balance", balance - 30)
     result = await session.commit()
-    print(result.replayed)   # False first time, True on replay
+    print(result.replayed)  # False first time, True on replay
 ```
 
 The first commit stores the key, the request fingerprint and the `CommitResult`.
@@ -92,7 +92,7 @@ instead of observing a newer sequence.
 | Backend | Retention |
 |---|---|
 | memory | up to 100,000 keys, oldest evicted in insertion order |
-| PostgreSQL | durable rows; no automatic pruning in 0.1.1 |
+| PostgreSQL | durable rows; no automatic pruning in 0.1.2 |
 | Redis | `idempotency_ttl_seconds`, default 30 days |
 
 If a replay arrives after the record is gone, it is a new commit. Size the

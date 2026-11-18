@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-11-18
+
+Patch release focused on trust, observability, and documentation improvements.
+**No core transaction or isolation semantic changes.** Upgrading from 0.1.1
+requires no code changes.
+
 ### Added
 
 * `ConflictError.explain()` and `ConflictError.to_dict()` helpers for
@@ -18,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Optional `on_retry` callback on `TransactionManager.run` and
   `TransactionManager.run_outcome`, composed with built-in retry metrics and
   events.
+* `docs/comparison.md` with positioning and honest comparison notes.
 
 ### Fixed
 
@@ -26,6 +33,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * Fencing/lease-lost commit conflicts now include `transaction_id` in the
   in-memory and PostgreSQL commit paths when available, improving conflict
   correlation.
+
+### Upgrade notes
+
+* No code changes required. The new conflict helpers/metrics and `on_retry`
+  callback are additive and backwards-compatible.
+* Pin `statepact==0.1.1` if you need the previous release; 0.1.0 and 0.1.1
+  remain available on PyPI and are not yanked.
 
 ## [0.1.1] - 2026-11-09
 

@@ -55,14 +55,15 @@ optional extras. See the [Quickstart](quickstart.md) for a first transaction.
 import asyncio
 from statepact import RetryPolicy, TransactionManager
 
+
 async def main() -> None:
-    manager = TransactionManager()                       # in-memory backend
+    manager = TransactionManager()  # in-memory backend
     counter = manager.resource("counter", {"value": 0})
     await counter.ensure(manager)
 
     async def increment(session) -> None:
         value = await session.read("value")
-        await asyncio.sleep(0)                           # concurrent agents interleave
+        await asyncio.sleep(0)  # concurrent agents interleave
         await session.write("value", value + 1)
 
     async def agent(index: int) -> None:
@@ -74,8 +75,9 @@ async def main() -> None:
         )
 
     await asyncio.gather(*(agent(i) for i in range(50)))
-    print(await counter.read("value"))                    # 50
+    print(await counter.read("value"))  # 50
     await manager.close()
+
 
 asyncio.run(main())
 ```
@@ -98,6 +100,6 @@ Next: [Quickstart](quickstart.md) → [Concepts](concepts.md) →
 
 ## Status
 
-0.1.1 is an alpha. The engine, integration tests against real PostgreSQL/Redis,
+0.1.2 is an alpha. The engine, integration tests against real PostgreSQL/Redis,
 property tests and benchmarks are real and reproducible. The public API may change
 before 1.0.

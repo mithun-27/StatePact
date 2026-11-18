@@ -57,7 +57,7 @@ from statepact import RetryPolicy
 stock = await manager.run(
     "agent-1",
     [inventory],
-    reserve_one_unit,          # async def reserve_one_unit(session): ...
+    reserve_one_unit,  # async def reserve_one_unit(session): ...
     isolation="optimistic",
     retry_policy=RetryPolicy(max_attempts=100, base_delay=0.002, jitter=0.3),
 )
@@ -78,6 +78,7 @@ To update an agent's plan between attempts, pass `replan`:
 async def replan(error, attempt):
     await agent.observe_conflict(error, attempt)
 
+
 await manager.run("agent-1", [inventory], work, replan=replan)
 ```
 
@@ -92,7 +93,7 @@ async with manager.session(
     balance = await session.read("balance")
     await session.write("balance", balance - 30)
     result = await session.commit()
-    print(result.replayed)     # False first time, True on replay
+    print(result.replayed)  # False first time, True on replay
 ```
 
 The default fingerprint hashes the agent id and the write footprint, not the
@@ -146,7 +147,7 @@ async with manager.session(agent_id="worker-a", resources=[job], fence=lease.tok
     ...
     await session.commit()
 
-await backend.renew_lease(lease)       # heartbeat before the TTL expires
+await backend.renew_lease(lease)  # heartbeat before the TTL expires
 await backend.release_lease(lease)
 ```
 

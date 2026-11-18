@@ -32,9 +32,7 @@ async def main() -> None:
     except LeaseLostError as exc:
         print("stale owner rejected:", exc)
 
-    async with manager.session(
-        agent_id="worker-b", resources=[job], fence=new.token
-    ) as session:
+    async with manager.session(agent_id="worker-b", resources=[job], fence=new.token) as session:
         await session.write("attempt", 2)
         await session.commit()
 

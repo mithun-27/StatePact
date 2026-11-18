@@ -33,7 +33,7 @@ async with manager.session(
     await session.write("status", "running")
     await session.commit()
 
-await manager.backend.renew_lease(lease)     # heartbeat before expiry
+await manager.backend.renew_lease(lease)  # heartbeat before expiry
 await manager.backend.release_lease(lease)
 ```
 

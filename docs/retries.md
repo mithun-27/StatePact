@@ -89,8 +89,8 @@ unexpected database error) is never retried implicitly. If an application-level
 exception is genuinely safe to repeat, you can opt it in:
 
 ```python
-class TransientToolError(Exception):
-    ...
+class TransientToolError(Exception): ...
+
 
 policy = RetryPolicy(
     max_attempts=10,
@@ -111,10 +111,10 @@ you need observability or custom handling:
 ```python
 outcome = await manager.run_outcome("agent-1", [inventory], reserve_one_unit)
 print(outcome.value)
-print(outcome.attempts)        # 1 on first-try success
-print(outcome.total_delay)     # seconds slept
-print(outcome.errors)          # every conflict, in order
-print(outcome.retried)         # attempts > 1
+print(outcome.attempts)  # 1 on first-try success
+print(outcome.total_delay)  # seconds slept
+print(outcome.errors)  # every conflict, in order
+print(outcome.retried)  # attempts > 1
 ```
 
 When the policy gives up:
@@ -139,6 +139,7 @@ the next attempt takes its fresh snapshot:
 async def replan(error: BaseException, attempt: int) -> None:
     await agent.observe_conflict(error, attempt)
 
+
 await manager.run("agent-1", [inventory], work, replan=replan)
 ```
 
@@ -149,6 +150,7 @@ manager's built-in retry metrics and events:
 ```python
 async def on_retry(error: BaseException, attempt: int, delay: float) -> None:
     print(f"retry after attempt {attempt}: {error} (sleep {delay:.3f}s)")
+
 
 await manager.run("agent-1", [inventory], work, on_retry=on_retry)
 ```
@@ -168,6 +170,7 @@ operation yourself:
 
 ```python
 from statepact import StorageError
+
 
 async def charge_with_replay() -> None:
     try:

@@ -18,7 +18,7 @@ validated**. No mode can protect a key that a transaction never declared.
 async with manager.session(
     agent_id="planner",
     resources=[inventory],
-    isolation="optimistic",       # default
+    isolation="optimistic",  # default
 ) as session:
     stock = await session.read("sku-1")
     await session.write("sku-1", stock - 1)
