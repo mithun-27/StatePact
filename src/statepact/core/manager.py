@@ -7,7 +7,7 @@ import random
 from collections.abc import Awaitable, Callable, Mapping, Sequence
 from typing import Any, TypeVar
 
-from statepact.coordination.retry import RetryOutcome, RetryPolicy, run_with_retry
+from statepact.coordination.retry import RetryCallback, RetryOutcome, RetryPolicy, run_with_retry
 from statepact.core.interfaces import IsolationMode, Lease, StorageBackend
 from statepact.core.resource import SharedResource
 from statepact.core.session import AgentSession
@@ -20,6 +20,11 @@ T = TypeVar("T")
 
 Work = Callable[[AgentSession], Awaitable[T]]
 Replan = Callable[[BaseException, int], Awaitable[None] | None]
+
+
+async def _maybe_await(value: Awaitable[None] | None) -> None:
+    if value is not None:
+        await value
 
 
 class TransactionManager:
@@ -123,6 +128,7 @@ class TransactionManager:
         *,
         isolation: IsolationMode = "optimistic",
         retry_policy: RetryPolicy | None = None,
+        on_retry: RetryCallback | None = None,
         replan: Replan | None = None,
         idempotency_key: str | None = None,
         idempotency_fingerprint: str | None = None,
@@ -145,6 +151,7 @@ class TransactionManager:
             work,
             isolation=isolation,
             retry_policy=retry_policy,
+            on_retry=on_retry,
             replan=replan,
             idempotency_key=idempotency_key,
             idempotency_fingerprint=idempotency_fingerprint,
@@ -164,6 +171,7 @@ class TransactionManager:
         *,
         isolation: IsolationMode = "optimistic",
         retry_policy: RetryPolicy | None = None,
+        on_retry: RetryCallback | None = None,
         replan: Replan | None = None,
         idempotency_key: str | None = None,
         idempotency_fingerprint: str | None = None,
@@ -194,7 +202,7 @@ class TransactionManager:
                     await session.commit()
                 return value
 
-        async def on_retry(error: BaseException, number: int, delay: float) -> None:
+        async def handle_retry(error: BaseException, number: int, delay: float) -> None:
             self.metrics.increment("statepact.retry.attempts")
             self.metrics.observe("statepact.retry.delay_ms", delay * 1000.0)
             self.event_bus.emit(
@@ -210,11 +218,13 @@ class TransactionManager:
                     },
                 )
             )
+            if on_retry is not None:
+                await _maybe_await(on_retry(error, number, delay))
 
         return await run_with_retry(
             attempt,
             policy,
-            on_retry=on_retry,
+            on_retry=handle_retry,
             replan=replan,
             sleep=sleep,
             rng=rng,

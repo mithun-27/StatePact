@@ -124,10 +124,16 @@ When the policy gives up:
 * otherwise `RetryExhaustedError(attempts, last_error)` is raised, with the last
   error as `__cause__`.
 
-## Replanning between attempts
+Conflicts are instances of `ConflictError`. You can inspect them directly
+(`conflict_class`, `resource`, `key`, `expected_version`, `actual_version`,
+`retryable`) or use `error.explain()` / `error.to_dict()` for structured
+logging and LLM-facing diagnostics.
 
-The agent may need to react to a conflict (discard a stale plan, re-check a tool
-result, choose a different product):
+## Replanning and retry callbacks
+
+Use `replan` to adapt the next attempt (discard a stale plan, re-check a tool
+result, choose a different strategy) after a retryable failure and **before**
+the next attempt takes its fresh snapshot:
 
 ```python
 async def replan(error: BaseException, attempt: int) -> None:
@@ -136,10 +142,19 @@ async def replan(error: BaseException, attempt: int) -> None:
 await manager.run("agent-1", [inventory], work, replan=replan)
 ```
 
-`replan` is called **after** a retryable failure and **before** the next attempt
-takes its fresh snapshot. It may be sync or async. The manager's own metrics and
-event emission happen through an internal `on_retry` callback; user code should
-use `replan`.
+Use `on_retry` for observation/logging. `TransactionManager.run` and
+`run_outcome` accept `on_retry(error, attempt, delay)` and compose it with the
+manager's built-in retry metrics and events:
+
+```python
+async def on_retry(error: BaseException, attempt: int, delay: float) -> None:
+    print(f"retry after attempt {attempt}: {error} (sleep {delay:.3f}s)")
+
+await manager.run("agent-1", [inventory], work, on_retry=on_retry)
+```
+
+`replan` and `on_retry` may be sync or async. For low-level control outside the
+manager, use `run_with_retry` from `statepact.coordination.retry`.
 
 ## Idempotency and ambiguous failures
 

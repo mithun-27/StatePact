@@ -272,7 +272,7 @@ class MemoryBackend(StorageBackend):
 
         # Fencing is enforced for every resource being written.
         for resource in {write.resource for write in plan.writes}:
-            self._fence_guard.validate(resource, plan.fence)
+            self._fence_guard.validate(resource, plan.fence, transaction_id=plan.transaction_id)
 
         latest: dict[tuple[str, str], Version] = {}
         for read in plan.reads:

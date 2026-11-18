@@ -38,12 +38,15 @@ class FenceGuard:
         if token > current:
             self._observed[resource] = token
 
-    def validate(self, resource: str, token: int | None) -> None:
+    def validate(
+        self, resource: str, token: int | None, *, transaction_id: str | None = None
+    ) -> None:
         if token is None:
             return
         current = self._observed.get(resource, 0)
         if token < current:
             raise LeaseLostError(
+                transaction_id=transaction_id,
                 resource=resource,
                 token=token,
                 current_token=current,

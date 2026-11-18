@@ -440,6 +440,7 @@ Start with the [documentation site](https://mithun-27.github.io/StatePact/) or t
 | [Integrations](docs/integrations.md) | Agent framework adapters |
 | [Benchmarks](docs/benchmarks.md) | Methodology and results |
 | [Operations](docs/operations.md) | Operational guidance |
+| [Comparison](docs/comparison.md) | Positioning and adjacent tools |
 | [Limitations](docs/limitations.md) | Known limitations |
 
 ## Development

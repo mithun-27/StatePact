@@ -71,5 +71,6 @@ nav:
   - Integrations: integrations.md
   - Benchmarks: benchmarks.md
   - Operations: operations.md
+  - Comparison: comparison.md
   - Limitations: limitations.md
   - API reference: api.md

@@ -439,6 +439,7 @@ class PostgresBackend(StorageBackend):
             current = int(token or 0)
             if plan.fence is not None and plan.fence < current:
                 raise LeaseLostError(
+                    transaction_id=plan.transaction_id,
                     resource=resource,
                     token=plan.fence,
                     current_token=current,

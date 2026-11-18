@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import asyncio
 
-from statepact import EventType, TransactionManager
+import pytest
+
+from statepact import ConflictError, EventType, TransactionManager
 from statepact.observability.events import Event, EventBus
 from statepact.observability.metrics import Metrics, summarize_latencies
 from statepact.observability.transaction_logs import TransactionLog
@@ -108,3 +110,24 @@ async def test_session_metrics_and_events(manager: TransactionManager) -> None:
     record = manager.transactions()[-1]
     assert record.committed
     assert record.duration_ms >= 0.0
+
+
+async def test_conflict_metrics_are_classified(manager: TransactionManager) -> None:
+    resource = manager.resource("r", {"k": 1})
+    s1 = manager.session(agent_id="a1", resources=[resource])
+    s2 = manager.session(agent_id="a2", resources=[resource])
+    async with s1, s2:
+        await s1.read("k")
+        await s2.read("k")
+        await s1.write("k", 2)
+        await s1.commit()
+        await s2.write("k", 3)
+        with pytest.raises(ConflictError):
+            await s2.commit()
+    snapshot = manager.metrics.snapshot()
+    counters = snapshot["counters"]
+    assert counters.get("statepact.tx.conflict", 0.0) >= 1.0
+    assert any(
+        name.startswith("statepact.tx.conflict.") and value >= 1.0
+        for name, value in counters.items()
+    )

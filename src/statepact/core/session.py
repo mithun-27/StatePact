@@ -452,6 +452,7 @@ class AgentSession:
             await self._release_locks_async()
             self._finish_booking(manager, tx, "conflict", None)
             manager.metrics.increment("statepact.tx.conflict")
+            manager.metrics.increment(f"statepact.tx.conflict.{exc.conflict_class}")
             manager.event_bus.emit(
                 Event(
                     type=EventType.CONFLICT,

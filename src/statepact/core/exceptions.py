@@ -165,6 +165,43 @@ class ConflictError(TransactionAbortedError):
     def is_retryable(self) -> bool:
         return self.retryable
 
+    def to_dict(self) -> dict[str, Any]:
+        """Structured, JSON-friendly view of the conflict."""
+        data: dict[str, Any] = {
+            "message": self.message,
+            "conflict_class": self.conflict_class,
+            "retryable": self.retryable,
+        }
+        if self.transaction_id is not None:
+            data["transaction_id"] = self.transaction_id
+        if self.resource is not None:
+            data["resource"] = self.resource
+        if self.key is not None:
+            data["key"] = self.key
+        if self.expected_version is not None:
+            data["expected_version"] = self.expected_version
+        if self.actual_version is not None:
+            data["actual_version"] = self.actual_version
+        if self.details:
+            data["details"] = dict(self.details)
+        return data
+
+    def explain(self) -> str:
+        """Human/LLM-readable summary of why the transaction did not commit."""
+        parts = [f"{self.conflict_class} conflict"]
+        if self.resource is not None and self.key is not None:
+            parts.append(f"on {self.resource}/{self.key}")
+        elif self.resource is not None:
+            parts.append(f"on resource {self.resource!r}")
+        detail = ": ".join(parts)
+        if self.expected_version is not None or self.actual_version is not None:
+            detail += (
+                f" (expected version {self.expected_version}, actual version {self.actual_version})"
+            )
+        detail += f". retryable={self.retryable}."
+        detail += " The transaction did not commit; re-run the whole operation on a fresh snapshot."
+        return detail
+
 
 class ReadWriteConflict(ConflictError):  # noqa: N818 - public API name, not an "Error" suffix
     """A value read by this transaction changed before commit."""

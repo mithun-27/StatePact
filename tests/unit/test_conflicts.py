@@ -124,6 +124,19 @@ async def test_conflict_reports_resource_and_versions(manager: TransactionManage
     assert error.conflict_class in {"read_write", "write_write"}
     assert error.expected_version == 1
     assert error.actual_version == 2
+    payload = error.to_dict()
+    assert payload["resource"] == "r"
+    assert payload["key"] == "k"
+    assert payload["conflict_class"] == error.conflict_class
+    assert payload["expected_version"] == 1
+    assert payload["actual_version"] == 2
+    assert payload["retryable"] is True
+    explanation = error.explain()
+    assert "conflict" in explanation
+    assert "r/k" in explanation
+    assert "expected version 1" in explanation
+    assert "actual version 2" in explanation
+    assert "fresh snapshot" in explanation
 
 
 async def test_snapshot_read_is_repeatable(manager: TransactionManager) -> None:

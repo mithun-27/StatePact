@@ -121,3 +121,52 @@ async def test_manager_retry_replans_and_re_reads(manager: TransactionManager) -
     assert observed == [1, 2]
     assert replanned == [1]
     assert await resource.read("k") == 12
+
+
+async def test_manager_retry_calls_on_retry_and_replans(manager: TransactionManager) -> None:
+    resource = manager.resource("r", {"k": 1})
+    observed: list[int] = []
+    replanned: list[tuple[type[BaseException], int]] = []
+    retried: list[tuple[str, int, float]] = []
+
+    async def work(session) -> int:
+        value = await session.read("k")
+        observed.append(value)
+        if len(observed) == 1:
+            other = manager.session(agent_id="other", resources=[resource])
+            async with other:
+                await other.write("k", 2)
+                await other.commit()
+        await session.write("k", value + 10)
+        return value + 10
+
+    async def replan(error: BaseException, attempt: int) -> None:
+        replanned.append((type(error), attempt))
+
+    async def on_retry(error: BaseException, attempt: int, delay: float) -> None:
+        retried.append((type(error).__name__, attempt, delay))
+
+    result = await manager.run(
+        "agent",
+        [resource],
+        work,
+        on_retry=on_retry,
+        replan=replan,
+        retry_policy=RetryPolicy(max_attempts=3, base_delay=0.0),
+        sleep=FakeSleep(),
+    )
+    assert result == 12
+    assert observed == [1, 2]
+    assert len(replanned) == 1
+    assert replanned[0][1] == 1
+    assert len(retried) == 1
+    assert retried[0][0] in {"ConflictError", "ReadWriteConflict", "WriteWriteConflict"}
+    assert retried[0][1] == 1
+    assert retried[0][2] == 0.0
+    snapshot = manager.metrics.snapshot()
+    assert snapshot["counters"]["statepact.retry.attempts"] >= 1.0
+    assert snapshot["counters"].get("statepact.tx.conflict", 0.0) >= 1.0
+    assert any(
+        name.startswith("statepact.tx.conflict.") and value >= 1.0
+        for name, value in snapshot["counters"].items()
+    )

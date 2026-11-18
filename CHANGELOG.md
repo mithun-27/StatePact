@@ -7,10 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+* `ConflictError.explain()` and `ConflictError.to_dict()` helpers for
+  structured, human- and LLM-readable conflict details.
+* Per-conflict-class metrics emitted alongside `statepact.tx.conflict`
+  (for example `statepact.tx.conflict.read_write`,
+  `statepact.tx.conflict.write_write`, `statepact.tx.conflict.serialization`,
+  `statepact.tx.conflict.deadlock`, `statepact.tx.conflict.lease_lost`).
+* Optional `on_retry` callback on `TransactionManager.run` and
+  `TransactionManager.run_outcome`, composed with built-in retry metrics and
+  events.
+
 ### Fixed
 
 * The Hugging Face Space `Docs` and `Documentation` links now open the hosted
   documentation site instead of the GitHub `docs/` directory.
+* Fencing/lease-lost commit conflicts now include `transaction_id` in the
+  in-memory and PostgreSQL commit paths when available, improving conflict
+  correlation.
 
 ## [0.1.1] - 2026-11-09
 

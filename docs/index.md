@@ -37,6 +37,7 @@ browser simulation of the protocol; the Python engine is in this repository.
 | In-memory, PostgreSQL and Redis backends | [Backends](backends.md) |
 | LangGraph, CrewAI and AutoGen adapters | [Integrations](integrations.md) |
 | Events, transaction log, metrics, OpenTelemetry bridge | [Operations](operations.md) |
+| Positioning and adjacent tools | [Comparison](comparison.md) |
 
 ## Install
 
