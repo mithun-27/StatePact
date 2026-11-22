@@ -39,9 +39,10 @@ async def main() -> None:
         accepted += int(ok)
 
     await asyncio.gather(*(agent(index) for index in range(50)))
-    print(f"accepted={accepted} remaining={await inventory.read('sku-1')}")
+    remaining = await inventory.read("sku-1")
+    print(f"accepted={accepted} rejected={50 - accepted} remaining={remaining}")
     assert accepted == 10
-    assert await inventory.read("sku-1") == 0
+    assert remaining == 0
     await manager.close()
 
 
