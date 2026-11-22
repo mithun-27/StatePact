@@ -43,6 +43,8 @@ The `Metrics` class tracks counters, gauges and histograms. Export them via Prom
 | `statepact.tx.committed` | number of transactions that reached `SESSION_COMMITTED` |
 | `statepact.tx.aborted` | number of transactions that ended as conflicts or clean aborts |
 | `statepact.tx.failed` | number of transactions that crashed (unknown outcome) |
+| `statepact.tx.conflict` | total commit conflicts observed |
+| `statepact.tx.conflict.<class>` | conflicts by class (for example `read_write`, `write_write`, `serialization`, `deadlock`, `lease_lost`) |
 | `statepact.commit.latency_ms` | time spent in a successful backend `commit()` call (one attempt) |
 | `statepact.tx.latency_ms` | end-to-end latency of one session attempt, including booking and cleanup |
 | `statepact.retry.attempts` | number of retries scheduled; does not include the first attempt |
