@@ -193,3 +193,17 @@ async def test_conflict_leaves_state_untouched(manager: TransactionManager) -> N
             await s2.commit()
     assert await resource.read("a") == 10
     assert await resource.read("b") == 2
+
+
+async def test_conflict_explain_and_dict_minimal() -> None:
+    error = ConflictError(message="boom")
+    payload = error.to_dict()
+    assert payload["message"] == "boom"
+    assert payload["conflict_class"] == "write_write"
+    assert payload["retryable"] is True
+    assert "resource" not in payload
+    assert "key" not in payload
+    explanation = error.explain()
+    assert "write_write conflict" in explanation
+    assert "retryable=True" in explanation
+    assert "fresh snapshot" in explanation
