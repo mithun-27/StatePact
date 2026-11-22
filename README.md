@@ -221,7 +221,7 @@ A `ConflictError` always means **the transaction did not commit**.
 | `IdempotencyMismatchError` | No | An idempotency key was reused with a different payload |
 | `StorageError` | No | Backend or transport failure; commit state may be unknown |
 
-Retryable conflicts are safe to retry because the transaction did not commit. `LeaseLostError` requires acquiring a new lease first.
+Retryable conflicts are safe to retry because the transaction did not commit. `LeaseLostError` requires acquiring a new lease first. For diagnostics, `ConflictError.explain()` and `ConflictError.to_dict()` expose human-readable and structured conflict details.
 
 Unknown commit outcomes, such as transport failures, are recorded as `FAILED` and are not automatically retried. Use an `idempotency_key` to make resubmission safe.
 
