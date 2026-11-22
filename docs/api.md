@@ -21,7 +21,7 @@ manager = TransactionManager()  # defaults to MemoryBackend
 | ``resource(name, initial_state=None, *, metadata=None)`` | Creates a ``SharedResource`` bound to this manager. |
 | ``ensure_resources(*resources)`` | Registers resources with the backend. Sessions also do this on entry. |
 | ``session(*, agent_id, resources=(), isolation="optimistic", idempotency_key=None, idempotency_fingerprint=None, fence=None, metadata=None, lock_timeout=None)`` | Returns an async context manager that yields an ``AgentSession``. |
-| ``run(agent_id, resources, work, *, isolation="optimistic", retry_policy=None, replan=None, idempotency_key=None, idempotency_fingerprint=None, metadata=None, fence=None, lock_timeout=None, sleep=asyncio.sleep, rng=None)`` | Runs ``work(session)`` with retry handling; returns the work’s result. |
+| ``run(agent_id, resources, work, *, isolation="optimistic", retry_policy=None, on_retry=None, replan=None, idempotency_key=None, idempotency_fingerprint=None, metadata=None, fence=None, lock_timeout=None, sleep=asyncio.sleep, rng=None)`` | Runs ``work(session)`` with retry handling; returns the work's result. ``on_retry`` receives ``(error, attempt, delay)`` before sleeping. |
 | ``run_outcome(...)`` | Same arguments as ``run``; returns ``RetryOutcome`` instead of the bare value. |
 | ``lease(resource, owner, ttl_seconds=30)`` | Acquires a lease and registers the resource if absent. |
 | ``health_check()`` | Returns ``True`` when the backend responds; backends catch their own transport errors and return ``False``. |
